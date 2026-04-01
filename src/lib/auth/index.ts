@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import Resend from "next-auth/providers/resend";
 import { prisma } from "@/lib/db";
+import { sendActiveTrailEmail, getTemplateId } from "@/lib/email/activetrail";
 import type { UserRole } from "@prisma/client";
 
 declare module "next-auth" {
@@ -21,9 +22,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
     Resend({
-      from: process.env.EMAIL_FROM ?? "noreply@mishkei-dan.co.il",
+      from: process.env.EMAIL_FROM ?? "noreply@mishkeydan.co.il",
       // OTP expires in 15 minutes
       maxAge: 15 * 60,
+      // Override default Resend sending with ActiveTrail
+      sendVerificationRequest: async ({ identifier, url }) => {
+        await sendActiveTrailEmail(
+          getTemplateId("ACTIVETRAIL_TEMPLATE_OTP"),
+          identifier,
+          {
+            otp_url: url,
+            expiry: "15 דקות",
+          }
+        );
+      },
     }),
   ],
   callbacks: {
