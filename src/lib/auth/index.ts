@@ -24,15 +24,31 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     Resend({
       from: process.env.EMAIL_FROM ?? "noreply@mishkeydan.co.il",
-      // OTP expires in 15 minutes
+      // Token valid for 15 minutes – gives us time for OTP entry
       maxAge: 15 * 60,
-      // Override default Resend sending with ActiveTrail
       sendVerificationRequest: async ({ identifier, url }) => {
+        // Generate a 6-digit OTP code
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // Remove any existing OTP for this email
+        await prisma.otpCode.deleteMany({ where: { email: identifier } });
+
+        // Store the code alongside the next-auth magic link URL
+        await prisma.otpCode.create({
+          data: {
+            email: identifier,
+            code,
+            callbackUrl: url, // full next-auth callback URL – used after code entry
+            expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+          },
+        });
+
+        // Send the 6-digit code via ActiveTrail
         await sendActiveTrailEmail(
           getTemplateId("ACTIVETRAIL_TEMPLATE_OTP"),
           identifier,
           {
-            otp_url: url,
+            otp_code: code,
             expiry: "15 דקות",
           }
         );

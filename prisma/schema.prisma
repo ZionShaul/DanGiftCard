@@ -243,3 +243,15 @@ model VerificationToken {
   @@unique([identifier, token])
   @@map("verification_tokens")
 }
+
+model OtpCode {
+  id          String   @id @default(cuid())
+  email       String
+  code        String   // 6-digit numeric code
+  callbackUrl String   // next-auth magic link URL to redirect to after verification
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([email])
+  @@map("otp_codes")
+}
