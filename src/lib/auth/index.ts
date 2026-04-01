@@ -27,31 +27,43 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       // Token valid for 15 minutes – gives us time for OTP entry
       maxAge: 15 * 60,
       sendVerificationRequest: async ({ identifier, url }) => {
-        // Generate a 6-digit OTP code
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        try {
+          console.log("[OTP] sendVerificationRequest start for:", identifier);
 
-        // Remove any existing OTP for this email
-        await prisma.otpCode.deleteMany({ where: { email: identifier } });
+          // Generate a 6-digit OTP code
+          const code = Math.floor(100000 + Math.random() * 900000).toString();
+          console.log("[OTP] generated code:", code);
 
-        // Store the code alongside the next-auth magic link URL
-        await prisma.otpCode.create({
-          data: {
-            email: identifier,
-            code,
-            callbackUrl: url, // full next-auth callback URL – used after code entry
-            expiresAt: new Date(Date.now() + 15 * 60 * 1000),
-          },
-        });
+          // Remove any existing OTP for this email
+          await prisma.otpCode.deleteMany({ where: { email: identifier } });
+          console.log("[OTP] deleted old OTP codes");
 
-        // Send the 6-digit code via ActiveTrail
-        await sendActiveTrailEmail(
-          getTemplateId("ACTIVETRAIL_TEMPLATE_OTP"),
-          identifier,
-          {
+          // Store the code alongside the next-auth magic link URL
+          await prisma.otpCode.create({
+            data: {
+              email: identifier,
+              code,
+              callbackUrl: url,
+              expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+            },
+          });
+          console.log("[OTP] stored OTP code in DB");
+
+          // Send the 6-digit code via ActiveTrail
+          const templateId = getTemplateId("ACTIVETRAIL_TEMPLATE_OTP");
+          console.log("[OTP] sending via ActiveTrail templateId:", templateId, "to:", identifier);
+
+          await sendActiveTrailEmail(templateId, identifier, {
             otp_code: code,
             expiry: "15 דקות",
-          }
-        );
+          });
+
+          console.log("[OTP] ActiveTrail send success");
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.error("[OTP] sendVerificationRequest FAILED:", msg);
+          throw err; // re-throw so next-auth handles the error
+        }
       },
     }),
   ],

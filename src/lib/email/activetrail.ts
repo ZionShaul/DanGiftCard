@@ -22,22 +22,28 @@ export async function sendActiveTrailEmail(
     return;
   }
 
+  const body = JSON.stringify({
+    operational_message_id: templateId,
+    email: toEmail,
+    parameters,
+  });
+
+  console.log("[ActiveTrail] POST", `${ACTIVETRAIL_BASE}/OperationalMessage/Message`, "body:", body);
+
   const res = await fetch(`${ACTIVETRAIL_BASE}/OperationalMessage/Message`, {
     method: "POST",
     headers: {
       Authorization: apiKey,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      operational_message_id: templateId,
-      email: toEmail,
-      parameters,
-    }),
+    body,
   });
 
+  const responseText = await res.text().catch(() => res.statusText);
+  console.log("[ActiveTrail] response status:", res.status, "body:", responseText);
+
   if (!res.ok) {
-    const err = await res.text().catch(() => res.statusText);
-    throw new Error(`[ActiveTrail] error ${res.status}: ${err}`);
+    throw new Error(`[ActiveTrail] error ${res.status}: ${responseText}`);
   }
 }
 
