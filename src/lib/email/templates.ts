@@ -58,7 +58,8 @@ export async function sendOrderSubmittedEmail(order: EmailOrder) {
   await sendActiveTrailEmail(
     getTemplateId("ACTIVETRAIL_TEMPLATE_ORDER_SUBMITTED"),
     order.requester.email,
-    orderParams(order)
+    orderParams(order),
+    `הזמנה ${order.orderNumber} הוגשה – מישקי דן`
   );
 }
 
@@ -72,7 +73,8 @@ export async function sendSignatoryRequestEmail(order: EmailOrder, approvalUrl: 
       approve_url: `${approvalUrl}&action=approve`,
       reject_url: `${approvalUrl}&action=reject`,
       approval_url: approvalUrl,
-    }
+    },
+    `נדרש אישורך – הזמנה ${order.orderNumber} | מישקי דן`
   );
 }
 
@@ -90,7 +92,8 @@ export async function sendSignatoryRejectedEmail(
       signatory_name: order.signatory?.fullName ?? "",
       comment,
       edit_url: editUrl,
-    }
+    },
+    `הזמנה ${order.orderNumber} נדחתה – מישקי דן`
   );
 }
 
@@ -105,7 +108,8 @@ export async function sendAdminPendingEmail(
     {
       ...orderParams(order),
       admin_url: adminUrl,
-    }
+    },
+    `הזמנה ${order.orderNumber} ממתינה לאישורך – מישקי דן`
   );
 }
 
@@ -113,6 +117,7 @@ export async function sendOrderApprovedEmail(order: EmailOrder) {
   await sendActiveTrailEmail(
     getTemplateId("ACTIVETRAIL_TEMPLATE_ORDER_APPROVED"),
     order.requester.email,
-    orderParams(order)
+    orderParams(order),
+    `הזמנה ${order.orderNumber} אושרה! – מישקי דן`
   );
 }

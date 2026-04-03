@@ -1,15 +1,23 @@
 const ACTIVETRAIL_BASE = "https://webapi.mymarketing.co.il/api";
 
 /**
- * Send a transactional email via ActiveTrail Operational Message API.
- * @param templateId - The Operational Message ID from ActiveTrail dashboard
- * @param toEmail    - Recipient email address
- * @param parameters - Merge variables matching $$variable$$ placeholders in the template
+ * Send a transactional email via ActiveTrail OperationalMessage API.
+ *
+ * Correct request format (discovered from API docs):
+ * {
+ *   email_package: [{ email, pairs: [{key, value}] }],
+ *   details: { name, subject, classification },
+ *   design: { template_id, body_part_format: 1, add_Statistics: false }
+ * }
+ *
+ * Merge variables in the template use $$key$$ syntax.
+ * pairs[].key corresponds to the part between $$ in the template.
  */
 export async function sendActiveTrailEmail(
   templateId: number,
   toEmail: string,
-  parameters: Record<string, string>
+  parameters: Record<string, string>,
+  subject: string = "הודעה ממישקי דן"
 ): Promise<void> {
   if (!templateId) {
     console.warn(`[ActiveTrail] templateId is 0 – skipping send to ${toEmail}`);
@@ -22,13 +30,23 @@ export async function sendActiveTrailEmail(
     return;
   }
 
+  const pairs = Object.entries(parameters).map(([key, value]) => ({ key, value }));
+
   const body = JSON.stringify({
-    operational_message_id: templateId,
-    email: toEmail,
-    parameters,
+    email_package: [{ email: toEmail, pairs }],
+    details: {
+      name: subject,
+      subject,
+      classification: "אישי",
+    },
+    design: {
+      template_id: templateId,
+      body_part_format: 1,
+      add_Statistics: false,
+    },
   });
 
-  console.log("[ActiveTrail] POST", `${ACTIVETRAIL_BASE}/OperationalMessage/Message`, "body:", body);
+  console.error("[ActiveTrail] POST to", toEmail, "templateId:", templateId, "subject:", subject);
 
   const res = await fetch(`${ACTIVETRAIL_BASE}/OperationalMessage/Message`, {
     method: "POST",
@@ -40,7 +58,7 @@ export async function sendActiveTrailEmail(
   });
 
   const responseText = await res.text().catch(() => res.statusText);
-  console.log("[ActiveTrail] response status:", res.status, "body:", responseText);
+  console.error("[ActiveTrail] response status:", res.status, "body:", responseText);
 
   if (!res.ok) {
     throw new Error(`[ActiveTrail] error ${res.status}: ${responseText}`);

@@ -45,10 +45,12 @@ const ActiveTrailEmailProvider: EmailConfig = {
       const templateId = getTemplateId("ACTIVETRAIL_TEMPLATE_OTP");
       console.error("[OTP] sending via ActiveTrail, templateId:", templateId, "to:", identifier);
 
-      await sendActiveTrailEmail(templateId, identifier, {
-        otp_code: code,
-        expiry: "15 דקות",
-      });
+      await sendActiveTrailEmail(
+        templateId,
+        identifier,
+        { otp_code: code, expiry: "15 דקות" },
+        "קוד הכניסה שלך למישקי דן"
+      );
 
       console.error("[OTP] email sent successfully ✓");
     } catch (err) {
