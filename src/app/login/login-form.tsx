@@ -25,7 +25,19 @@ export default function LoginForm() {
     setError("");
     setLoading(true);
 
-    const result = await signIn("resend", { email: email.trim(), redirect: false });
+    const checkRes = await fetch("/api/auth/check-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email.trim() }),
+    });
+    const checkData = await checkRes.json();
+    if (!checkData.exists) {
+      setLoading(false);
+      setError("המשתמש אינו קיים במערכת. אנא פנה למשקי דן.");
+      return;
+    }
+
+    const result = await signIn("resend", { email: email.trim(), redirect: false, callbackUrl: "/dashboard" });
 
     setLoading(false);
 
@@ -98,8 +110,8 @@ export default function LoginForm() {
         <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <span className="text-white text-2xl font-bold">מ</span>
         </div>
-        <h1 className="text-2xl font-bold text-slate-800">מישקי דן</h1>
-        <p className="text-slate-500 mt-1">מערכת הזמנות תווי שי</p>
+        <h1 className="text-2xl font-bold text-slate-800">משקי דן</h1>
+        <p className="text-slate-500 mt-1">מערכת הזמנת תווי שי</p>
       </div>
 
       {/* Global error from URL params */}
