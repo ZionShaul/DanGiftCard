@@ -74,8 +74,8 @@ export default function LoginForm() {
       return;
     }
 
-    // Navigate to the next-auth callback URL to complete sign-in
-    window.location.href = data.callbackUrl;
+    // Navigate to dashboard (session cookie set by verify endpoint)
+    window.location.href = data.redirectUrl;
   }
 
   // ── OTP digit input handling ──────────────────────────────────────────────
