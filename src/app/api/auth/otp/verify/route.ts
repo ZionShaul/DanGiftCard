@@ -10,24 +10,36 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "חסרים פרטים" }, { status: 400 });
   }
 
-  const otp = await prisma.otpCode.findFirst({
+  const otpIdentifier = `otp:${email}`;
+
+  const record = await prisma.verificationToken.findFirst({
     where: {
-      email,
-      code,
-      expiresAt: { gt: new Date() },
+      identifier: otpIdentifier,
+      expires: { gt: new Date() },
     },
   });
 
-  if (!otp) {
+  if (!record) {
     return NextResponse.json(
-      { error: "הקוד שגוי או פג תוקפו. אנא בקש קוד חדש." },
+      { error: "הקוד פג תוקפו. אנא בקש קוד חדש." },
       { status: 400 }
     );
   }
 
-  // Delete OTP – one-time use
-  await prisma.otpCode.delete({ where: { id: otp.id } });
+  // token format: "CODE|CALLBACKURL"
+  const pipeIndex = record.token.indexOf("|");
+  const storedCode = record.token.substring(0, pipeIndex);
+  const callbackUrl = record.token.substring(pipeIndex + 1);
 
-  // Return the next-auth magic link URL so the client can complete sign-in
-  return NextResponse.json({ callbackUrl: otp.callbackUrl });
+  if (storedCode !== code) {
+    return NextResponse.json(
+      { error: "הקוד שגוי. אנא נסה שוב." },
+      { status: 400 }
+    );
+  }
+
+  // Delete – one-time use
+  await prisma.verificationToken.deleteMany({ where: { identifier: otpIdentifier } });
+
+  return NextResponse.json({ callbackUrl });
 }

@@ -6,23 +6,25 @@ export async function POST(req: NextRequest) {
   await requireAdmin();
 
   const body = await req.json().catch(() => ({}));
-  const to: string = body.to ?? "";
+  const to: string = (body.to ?? "").trim();
 
-  if (!to || !to.includes("@")) {
-    return NextResponse.json({ error: "כתובת מייל לא תקינה" }, { status: 400 });
+  if (!to) {
+    return NextResponse.json({ error: "חסר כתובת מייל" }, { status: 400 });
   }
 
-  const templateId = getTemplateId("ACTIVETRAIL_TEMPLATE_OTP");
-
   try {
+    const templateId = getTemplateId("ACTIVETRAIL_TEMPLATE_OTP");
+    console.error("[test-email] sending to:", to, "templateId:", templateId);
+
     await sendActiveTrailEmail(templateId, to, {
-      otp_url: "https://dan-gift-card.vercel.app/login",
-      expiry: "בדיקה",
+      otp_code: "123456",
+      expiry: "15 דקות",
     });
-    return NextResponse.json({ ok: true, message: `מייל נשלח בהצלחה ל-${to}`, templateId });
+
+    return NextResponse.json({ success: true, message: `מייל נשלח ל-${to}` });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error("[test-email]", message);
-    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[test-email] FAILED:", msg);
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
