@@ -5,6 +5,11 @@ export default auth((req) => {
   const { pathname } = req.nextUrl;
   const session = req.auth;
 
+  // Debug logging
+  if (pathname === "/dashboard" || pathname.startsWith("/api/auth/callback")) {
+    console.error("[middleware] path:", pathname, "session:", session ? `user=${session.user?.email}` : "null");
+  }
+
   // Public routes
   const publicRoutes = ["/login", "/approval"];
   if (publicRoutes.some((r) => pathname.startsWith(r))) return NextResponse.next();
@@ -13,6 +18,9 @@ export default auth((req) => {
 
   // Require authentication
   if (!session) {
+    if (pathname === "/dashboard") {
+      console.error("[middleware] no session → redirecting /dashboard to /login");
+    }
     return NextResponse.redirect(new URL("/login", req.url));
   }
 

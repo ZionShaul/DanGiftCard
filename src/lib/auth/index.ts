@@ -28,6 +28,7 @@ const ActiveTrailEmailProvider: EmailConfig = {
   async sendVerificationRequest({ identifier, url }) {
     try {
       console.error("[OTP] sendVerificationRequest called for:", identifier);
+      console.error("[OTP] magic link url:", url);
 
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       const otpIdentifier = `otp:${identifier}`;
@@ -49,7 +50,7 @@ const ActiveTrailEmailProvider: EmailConfig = {
         templateId,
         identifier,
         { otp_code: code, expiry: "15 דקות" },
-        "קוד הכניסה שלך למישקי דן"
+        "קוד הכניסה שלך למשקי דן"
       );
 
       console.error("[OTP] email sent successfully ✓");
@@ -67,26 +68,40 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [ActiveTrailEmailProvider],
   callbacks: {
+    async signIn({ user, account, email }) {
+      console.error("[auth signIn callback] user.id:", user?.id, "user.email:", user?.email, "account.provider:", account?.provider, "verificationRequest:", email?.verificationRequest);
+      return true;
+    },
     async session({ session, user }) {
-      const dbUser = await prisma.user.findUnique({
-        where: { id: user.id },
-        select: { role: true, organizationId: true, isActive: true, fullName: true },
-      });
-
-      if (dbUser) {
-        session.user.id = user.id;
-        session.user.role = dbUser.role;
-        session.user.organizationId = dbUser.organizationId;
-        session.user.isActive = dbUser.isActive;
-        session.user.name = dbUser.fullName;
-
-        await prisma.user.update({
+      console.error("[auth session callback] entering. user.id:", user?.id, "user.email:", user?.email);
+      try {
+        const dbUser = await prisma.user.findUnique({
           where: { id: user.id },
-          data: { lastLoginAt: new Date() },
+          select: { role: true, organizationId: true, isActive: true, fullName: true },
         });
-      }
 
-      return session;
+        console.error("[auth session callback] dbUser found:", !!dbUser, "isActive:", dbUser?.isActive);
+
+        if (dbUser) {
+          session.user.id = user.id;
+          session.user.role = dbUser.role;
+          session.user.organizationId = dbUser.organizationId;
+          session.user.isActive = dbUser.isActive;
+          session.user.name = dbUser.fullName;
+
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { lastLoginAt: new Date() },
+          });
+          console.error("[auth session callback] session updated ✓");
+        }
+
+        return session;
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        console.error("[auth session callback] ERROR:", msg);
+        throw e;
+      }
     },
   },
   pages: {
