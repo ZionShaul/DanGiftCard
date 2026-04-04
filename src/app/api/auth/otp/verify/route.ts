@@ -29,6 +29,7 @@ export async function POST(req: NextRequest) {
   // token format: "CODE|CALLBACKURL"
   const pipeIndex = record.token.indexOf("|");
   const storedCode = record.token.substring(0, pipeIndex);
+  const callbackUrl = record.token.substring(pipeIndex + 1);
 
   if (storedCode !== code) {
     return NextResponse.json(
@@ -37,41 +38,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // OTP valid – delete it (one-time use) + clean up next-auth's email token
+  // Delete – one-time use
   await prisma.verificationToken.deleteMany({ where: { identifier: otpIdentifier } });
-  await prisma.verificationToken.deleteMany({ where: { identifier: email } });
 
-  // Find the user
-  const user = await prisma.user.findUnique({
-    where: { email },
-    select: { id: true, isActive: true },
-  });
-
-  if (!user || !user.isActive) {
-    return NextResponse.json({ error: "המשתמש אינו קיים במערכת" }, { status: 400 });
-  }
-
-  // Create session directly in DB (bypasses next-auth magic link callback)
-  const sessionToken = crypto.randomUUID();
-  const expires = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
-
-  await prisma.session.create({
-    data: { sessionToken, userId: user.id, expires },
-  });
-
-  // Set next-auth v5 session cookie
-  const isProduction = process.env.NODE_ENV === "production";
-  const cookieName = isProduction
-    ? "__Secure-authjs.session-token"
-    : "authjs.session-token";
-
-  const response = NextResponse.json({ redirectUrl: "/dashboard" });
-  response.cookies.set(cookieName, sessionToken, {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: "lax",
-    expires,
-    path: "/",
-  });
-  return response;
+  // Return the next-auth magic link URL – visiting it creates the session properly
+  return NextResponse.json({ callbackUrl });
 }
