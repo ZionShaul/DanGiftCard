@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { signIn } from "next-auth/react";
+import { useState, useRef, useEffect } from "react";
+import { signIn, useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 
 type Step = "email" | "code";
@@ -18,6 +18,14 @@ export default function LoginForm() {
   const router = useRouter();
   const isError = searchParams.get("error") === "1";
   const isInactive = searchParams.get("error") === "inactive";
+
+  // If already authenticated, redirect to dashboard
+  const { status } = useSession();
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/dashboard");
+    }
+  }, [status, router]);
 
   // ── Step 1: send OTP ──────────────────────────────────────────────────────
   async function handleEmailSubmit(e: React.FormEvent) {
@@ -37,7 +45,9 @@ export default function LoginForm() {
       return;
     }
 
-    const result = await signIn("resend", { email: email.trim(), redirect: false, callbackUrl: "/dashboard" });
+    // Use absolute URL so next-auth stores the correct callbackUrl in the magic link
+    const dashboardUrl = `${window.location.origin}/dashboard`;
+    const result = await signIn("resend", { email: email.trim(), redirect: false, callbackUrl: dashboardUrl });
 
     setLoading(false);
 

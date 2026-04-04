@@ -10,6 +10,12 @@ export default auth((req) => {
     console.error("[middleware] path:", pathname, "session:", session ? `user=${session.user?.email}` : "null");
   }
 
+  // If authenticated user visits /login → send them to dashboard
+  if (pathname.startsWith("/login") && session) {
+    console.error("[middleware] authenticated user at /login → redirecting to /dashboard");
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
+
   // Public routes
   const publicRoutes = ["/login", "/approval"];
   if (publicRoutes.some((r) => pathname.startsWith(r))) return NextResponse.next();
