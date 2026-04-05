@@ -5,7 +5,7 @@ import { calculateItemTotals, calculateOrderTotals } from "@/lib/orders/calculat
 import { z } from "zod";
 
 const itemSchema = z.object({
-  cardTypeId: z.string().uuid(),
+  cardTypeId: z.string(),
   quantity: z.number().int().min(1),
   loadAmount: z.number().min(1),
 });
@@ -13,6 +13,7 @@ const itemSchema = z.object({
 const updateSchema = z.object({
   items: z.array(itemSchema).optional(),
   notes: z.string().max(2000).optional(),
+  signatoryId: z.string().optional(),
 });
 
 async function getOrderOrFail(id: string) {
@@ -132,11 +133,42 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         totalFaceValue: orderTotals.totalFaceValue,
         totalPayable: orderTotals.totalPayable,
         ...(parsed.data.notes !== undefined ? { notes: parsed.data.notes } : {}),
+        ...(parsed.data.signatoryId !== undefined ? { signatoryId: parsed.data.signatoryId } : {}),
       },
     });
-  } else if (parsed.data.notes !== undefined) {
-    await prisma.order.update({ where: { id }, data: { notes: parsed.data.notes } });
+  } else {
+    const updateData: Record<string, unknown> = {};
+    if (parsed.data.notes !== undefined) updateData.notes = parsed.data.notes;
+    if (parsed.data.signatoryId !== undefined) updateData.signatoryId = parsed.data.signatoryId;
+    if (Object.keys(updateData).length > 0) {
+      await prisma.order.update({ where: { id }, data: updateData });
+    }
   }
 
   return NextResponse.json(await getOrderOrFail(id));
+}
+
+export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const session = await auth();
+  if (!session?.user || session.user.role !== "requester") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id } = await params;
+  const order = await prisma.order.findUnique({ where: { id } });
+  if (!order) return NextResponse.json({ error: "הזמנה לא נמצאה" }, { status: 404 });
+  if (order.requesterId !== session.user.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  if (order.status !== "draft" && order.status !== "rejected_signatory") {
+    return NextResponse.json({ error: "לא ניתן למחוק הזמנה בסטטוס זה" }, { status: 400 });
+  }
+
+  await prisma.$transaction([
+    prisma.orderItem.deleteMany({ where: { orderId: id } }),
+    prisma.auditLog.deleteMany({ where: { entityId: id, entityType: "order" } }),
+    prisma.order.delete({ where: { id } }),
+  ]);
+
+  return NextResponse.json({ success: true });
 }

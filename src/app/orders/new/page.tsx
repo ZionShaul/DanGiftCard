@@ -52,10 +52,21 @@ export default function NewOrderPage() {
       .then(setWindows);
     fetch("/api/v1/card-types")
       .then((r) => r.json())
-      .then(setCardTypes);
-    fetch("/api/v1/users?role=signatory")
-      .then((r) => r.json())
-      .then(setSignatories);
+      .then((data: CardType[]) =>
+        setCardTypes(
+          Array.isArray(data)
+            ? data.map((ct) => ({
+                ...ct,
+                discountPct: Number(ct.discountPct),
+                minLoadAmount: Number(ct.minLoadAmount),
+                maxLoadAmount: Number(ct.maxLoadAmount),
+              }))
+            : []
+        )
+      );
+    fetch("/api/v1/users/signatories")
+      .then((r) => r.ok ? r.json() : [])
+      .then((data) => setSignatories(Array.isArray(data) ? data : []));
   }, []);
 
   function addItem() {
@@ -90,8 +101,8 @@ export default function NewOrderPage() {
   const totalPayable = items.reduce((s, i) => s + calcItemTotal(i), 0);
   const totalCards = items.reduce((s, i) => s + i.quantity, 0);
 
-  const window = windows.find((w) => w.id === selectedWindow);
-  const minTotal = window ? Number(window.minOrderTotal) : 2000;
+  const orderWindow = windows.find((w) => w.id === selectedWindow);
+  const minTotal = orderWindow ? Number(orderWindow.minOrderTotal) : 2000;
 
   async function handleSubmit() {
     if (!termsAccepted) {
@@ -107,36 +118,26 @@ export default function NewOrderPage() {
     setError("");
 
     try {
-      // Create draft order
-      const createRes = await fetch("/api/v1/orders", {
+      const res = await fetch("/api/v1/orders/create-and-submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderWindowId: selectedWindow }),
+        body: JSON.stringify({
+          orderWindowId: selectedWindow,
+          items: items.map((item) => ({
+            cardTypeId: item.cardTypeId,
+            quantity: Number(item.quantity),
+            loadAmount: Number(item.loadAmount),
+          })),
+          notes,
+          signatoryId: selectedSignatory,
+          termsAccepted: true,
+        }),
       });
-      if (!createRes.ok) {
-        const err = await createRes.json();
-        throw new Error(err.error ?? "שגיאה ביצירת הזמנה");
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(typeof err.error === "string" ? err.error : "שגיאה בהגשת ההזמנה");
       }
-      const order = await createRes.json();
-
-      // Add items
-      await fetch(`/api/v1/orders/${order.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items, notes }),
-      });
-
-      // Submit
-      const submitRes = await fetch(`/api/v1/orders/${order.id}/submit`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ signatoryId: selectedSignatory, termsAccepted: true }),
-      });
-      if (!submitRes.ok) {
-        const err = await submitRes.json();
-        throw new Error(err.error ?? "שגיאה בהגשת ההזמנה");
-      }
-
+      const order = await res.json();
       router.push(`/orders/${order.id}?submitted=1`);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "שגיאה");
@@ -338,7 +339,7 @@ export default function NewOrderPage() {
           <div className="bg-slate-50 rounded-lg p-4 mb-4 space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-slate-500">חלון הזמנות:</span>
-              <span>{window?.name}</span>
+              <span>{orderWindow?.name}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-slate-500">סה״כ כרטיסים:</span>
@@ -348,6 +349,47 @@ export default function NewOrderPage() {
               <span>לתשלום:</span>
               <span>₪{totalPayable.toLocaleString("he-IL", { maximumFractionDigits: 0 })}</span>
             </div>
+          </div>
+
+          {/* Items breakdown table */}
+          <div className="mb-4 overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead>
+                <tr className="bg-slate-100 text-slate-600">
+                  <th className="px-3 py-2 text-right font-medium">סוג כרטיס</th>
+                  <th className="px-3 py-2 text-center font-medium">כמות</th>
+                  <th className="px-3 py-2 text-center font-medium">טעינה לכרטיס</th>
+                  <th className="px-3 py-2 text-center font-medium">הנחה</th>
+                  <th className="px-3 py-2 text-left font-medium">סה״כ לפריט</th>
+                </tr>
+              </thead>
+              <tbody>
+                {items.map((item, i) => {
+                  const ct = getCardType(item.cardTypeId);
+                  return (
+                    <tr key={i} className="border-t border-slate-100">
+                      <td className="px-3 py-2 text-slate-800">{ct?.nameHe ?? "-"}</td>
+                      <td className="px-3 py-2 text-center text-slate-700">{item.quantity}</td>
+                      <td className="px-3 py-2 text-center text-slate-700">₪{item.loadAmount.toLocaleString("he-IL")}</td>
+                      <td className="px-3 py-2 text-center text-slate-500">{ct?.discountPct ?? 0}%</td>
+                      <td className="px-3 py-2 text-left font-medium text-slate-800">
+                        ₪{calcItemTotal(item).toLocaleString("he-IL", { maximumFractionDigits: 0 })}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot>
+                <tr className="border-t-2 border-slate-300 bg-slate-50 font-semibold">
+                  <td className="px-3 py-2">סה״כ</td>
+                  <td className="px-3 py-2 text-center">{totalCards} כרטיסים</td>
+                  <td colSpan={2} />
+                  <td className="px-3 py-2 text-left text-blue-700">
+                    ₪{totalPayable.toLocaleString("he-IL", { maximumFractionDigits: 0 })}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
           </div>
 
           <div className="mb-4">

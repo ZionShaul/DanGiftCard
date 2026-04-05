@@ -7,8 +7,10 @@ import { UserRole } from "@prisma/client";
 const createSchema = z.object({
   email: z.string().email(),
   fullName: z.string().min(2).max(200),
+  phone: z.string().max(20).optional().nullable(),
   role: z.nativeEnum(UserRole),
   organizationId: z.string().uuid().optional(),
+  isActive: z.boolean().default(true),
 });
 
 export async function GET(req: NextRequest) {
@@ -58,8 +60,10 @@ export async function POST(req: NextRequest) {
     data: {
       email: parsed.data.email,
       fullName: parsed.data.fullName,
+      phone: parsed.data.phone ?? null,
       role: parsed.data.role,
       organizationId: parsed.data.organizationId ?? null,
+      isActive: parsed.data.isActive,
     },
   });
 

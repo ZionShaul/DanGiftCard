@@ -54,6 +54,7 @@ model User {
   id             String    @id @default(uuid())
   email          String    @unique @db.VarChar(255)
   fullName       String    @db.VarChar(200)
+  phone          String?   @db.VarChar(20)
   role           UserRole
   organizationId String?
   isActive       Boolean   @default(true)
@@ -80,6 +81,7 @@ model CardType {
   id            String   @id @default(uuid())
   name          String   @db.VarChar(200)
   nameHe        String   @db.VarChar(200)
+  description   String?  @db.Text
   discountPct   Decimal  @db.Decimal(5, 2)
   minLoadAmount Decimal  @default(100) @db.Decimal(10, 2)
   maxLoadAmount Decimal  @default(1500) @db.Decimal(10, 2)

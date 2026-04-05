@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
@@ -6,18 +6,21 @@ import { z } from "zod";
 const schema = z.object({
   name: z.string().min(2).max(200),
   nameHe: z.string().min(2).max(200),
+  description: z.string().optional().nullable(),
   discountPct: z.number().min(0).max(100),
   minLoadAmount: z.number().min(1).default(100),
   maxLoadAmount: z.number().min(1).default(1500),
   displayOrder: z.number().default(0),
 });
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const showAll = req.nextUrl.searchParams.get("all") === "1" && session.user.role === "admin";
+
   const cardTypes = await prisma.cardType.findMany({
-    where: { isActive: true },
+    where: showAll ? undefined : { isActive: true },
     orderBy: { displayOrder: "asc" },
   });
 

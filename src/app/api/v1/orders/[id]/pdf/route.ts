@@ -19,12 +19,19 @@ export async function GET(_: NextRequest, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const pdf = await generateOrderPdf(id);
-
-  return new NextResponse(new Uint8Array(pdf), {
-    headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="order-${order.orderNumber}.pdf"`,
-    },
-  });
+  try {
+    const pdf = await generateOrderPdf(id);
+    return new NextResponse(new Uint8Array(pdf), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="order-${order.orderNumber}.pdf"`,
+      },
+    });
+  } catch (err) {
+    console.error("PDF generation failed:", err);
+    return NextResponse.json(
+      { error: "שגיאה ביצירת ה-PDF: " + (err instanceof Error ? err.message : String(err)) },
+      { status: 500 }
+    );
+  }
 }

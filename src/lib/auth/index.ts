@@ -1,8 +1,6 @@
 import NextAuth from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
+import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/lib/db";
-import { sendActiveTrailEmail, getTemplateId } from "@/lib/email/activetrail";
-import type { EmailConfig } from "next-auth/providers/email";
 import type { UserRole } from "@prisma/client";
 
 declare module "next-auth" {
@@ -18,95 +16,56 @@ declare module "next-auth" {
   }
 }
 
-// Custom email provider that sends OTP via ActiveTrail
-const ActiveTrailEmailProvider: EmailConfig = {
-  id: "resend",           // keep id="resend" so next-auth adapter & callbacks work unchanged
-  type: "email",
-  name: "ActiveTrail OTP",
-  from: process.env.EMAIL_FROM ?? "noreply@mishkeydan.co.il",
-  maxAge: 15 * 60,        // 15 minutes
-  async sendVerificationRequest({ identifier, url }) {
-    try {
-      console.error("[OTP] sendVerificationRequest called for:", identifier);
-      console.error("[OTP] magic link url:", url);
-
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
-      const otpIdentifier = `otp:${identifier}`;
-      const tokenValue = `${code}|${url}`;  // "CODE|CALLBACKURL"
-      const expires = new Date(Date.now() + 15 * 60 * 1000);
-
-      await prisma.verificationToken.deleteMany({ where: { identifier: otpIdentifier } });
-      console.error("[OTP] cleared old tokens");
-
-      await prisma.verificationToken.create({
-        data: { identifier: otpIdentifier, token: tokenValue, expires },
-      });
-      console.error("[OTP] stored token in DB");
-
-      const templateId = getTemplateId("ACTIVETRAIL_TEMPLATE_OTP");
-      console.error("[OTP] sending via ActiveTrail, templateId:", templateId, "to:", identifier);
-
-      await sendActiveTrailEmail(
-        templateId,
-        identifier,
-        { otp_code: code, expiry: "15 דקות" },
-        "קוד הכניסה שלך למשקי דן"
-      );
-
-      console.error("[OTP] email sent successfully ✓");
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      console.error("[OTP] FAILED:", msg);
-      throw err;
-    }
-  },
-  options: {},
-};
-
 export const { handlers, signIn, signOut, auth } = NextAuth({
   secret: process.env.AUTH_SECRET,
-  adapter: PrismaAdapter(prisma),
-  providers: [ActiveTrailEmailProvider],
-  callbacks: {
-    async signIn({ user, account, email }) {
-      console.error("[auth signIn callback] user.id:", user?.id, "user.email:", user?.email, "account.provider:", account?.provider, "verificationRequest:", email?.verificationRequest);
-      return true;
-    },
-    async session({ session, user }) {
-      console.error("[auth session callback] entering. user.id:", user?.id, "user.email:", user?.email);
-      try {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
-          select: { role: true, organizationId: true, isActive: true, fullName: true },
+  session: { strategy: "jwt" },
+  providers: [
+    Credentials({
+      credentials: { email: {} },
+      async authorize(credentials) {
+        const email = (credentials?.email as string | undefined)?.trim().toLowerCase();
+        if (!email) return null;
+
+        const user = await prisma.user.findUnique({
+          where: { email },
+          select: { id: true, email: true, fullName: true, role: true, organizationId: true, isActive: true },
         });
 
-        console.error("[auth session callback] dbUser found:", !!dbUser, "isActive:", dbUser?.isActive);
+        if (!user || !user.isActive) return null;
 
-        if (dbUser) {
-          session.user.id = user.id;
-          session.user.role = dbUser.role;
-          session.user.organizationId = dbUser.organizationId;
-          session.user.isActive = dbUser.isActive;
-          session.user.name = dbUser.fullName;
+        await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
 
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { lastLoginAt: new Date() },
-          });
-          console.error("[auth session callback] session updated ✓");
-        }
-
-        return session;
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e);
-        console.error("[auth session callback] ERROR:", msg);
-        throw e;
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.fullName,
+          role: user.role,
+          organizationId: user.organizationId,
+          isActive: user.isActive,
+        };
+      },
+    }),
+  ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = (user as { role: UserRole }).role;
+        token.organizationId = (user as { organizationId: string | null }).organizationId;
+        token.isActive = (user as { isActive: boolean }).isActive;
       }
+      return token;
+    },
+    async session({ session, token }) {
+      session.user.id = token.id as string;
+      session.user.role = token.role as UserRole;
+      session.user.organizationId = token.organizationId as string | null;
+      session.user.isActive = token.isActive as boolean;
+      return session;
     },
   },
   pages: {
     signIn: "/login",
-    verifyRequest: "/login?verify=1",
     error: "/login?error=1",
   },
 });

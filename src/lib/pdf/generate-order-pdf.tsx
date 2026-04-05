@@ -5,13 +5,22 @@ import { formatCurrency, formatDate } from "@/lib/utils";
 import { STATUS_LABELS } from "@/lib/orders/status-machine";
 
 Font.register({
-  family: "Heebo",
-  src: "https://fonts.gstatic.com/s/heebo/v26/NGSpv5_NC0k9P_v6ZUCbLRAHxK1EiS2cckOnz02SXQ.woff2",
+  family: "Alef",
+  fonts: [
+    {
+      src: "https://fonts.gstatic.com/s/alef/v21/FeVQS0BTqb-Deo5rF1F2V5Ro.ttf",
+      fontWeight: 400,
+    },
+    {
+      src: "https://fonts.gstatic.com/s/alef/v21/FeVIS0BTqb-DeoZrGmF-bEVlUyg.ttf",
+      fontWeight: 700,
+    },
+  ],
 });
 
 const styles = StyleSheet.create({
   page: {
-    fontFamily: "Heebo",
+    fontFamily: "Alef",
     direction: "rtl",
     padding: 40,
     fontSize: 11,
@@ -184,19 +193,15 @@ export async function generateOrderPdf(orderId: string): Promise<Buffer> {
         {/* Payment details */}
         <View style={styles.paymentBox}>
           <Text style={{ ...styles.sectionTitle, marginBottom: 6 }}>פרטי תשלום</Text>
-          <Text style={{ fontSize: 10, lineHeight: 1.6 }}>
-            בנק הפועלים (12) | סניף 412 | חשבון 697890
-            {"\n"}שם החשבון: מישקי הדרום אשראי ורכישות
-            {"\n"}לתשלום: {formatCurrency(Number(order.totalPayable))}
-          </Text>
+          <Text style={{ fontSize: 10, lineHeight: 1.6 }}>בנק הפועלים (12) | סניף 412 | חשבון 697890</Text>
+          <Text style={{ fontSize: 10, lineHeight: 1.6 }}>שם החשבון: מישקי הדרום אשראי ורכישות</Text>
+          <Text style={{ fontSize: 10, lineHeight: 1.6 }}>לתשלום: {formatCurrency(Number(order.totalPayable))}</Text>
         </View>
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text>
-            שליחת הזמנה זו מהווה הרשאה לחיוב חשבון הארגון. לא תתאפשר החזרת כרטיסים.
-            {"\n"}לשאלות: נועה 08-8611861 | mishkeydan@mishkeydan.co.il
-          </Text>
+          <Text>שליחת הזמנה זו מהווה הרשאה לחיוב חשבון הארגון. לא תתאפשר החזרת כרטיסים.</Text>
+          <Text>לשאלות: נועה 08-8611861 | mishkeydan@mishkeydan.co.il</Text>
         </View>
       </Page>
     </Document>

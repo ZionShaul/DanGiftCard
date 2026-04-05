@@ -6,7 +6,7 @@ import { sendOrderSubmittedEmail, sendSignatoryRequestEmail } from "@/lib/email/
 import { z } from "zod";
 
 const schema = z.object({
-  signatoryId: z.string().uuid(),
+  signatoryId: z.string().min(1),
   termsAccepted: z.literal(true),
 });
 
