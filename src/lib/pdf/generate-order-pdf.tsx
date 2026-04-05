@@ -26,6 +26,7 @@ const styles = StyleSheet.create({
     padding: 40,
     fontSize: 11,
     color: "#1a1a1a",
+    textAlign: "right",
   },
   header: {
     backgroundColor: "#1a73e8",
@@ -64,8 +65,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#eeeeee",
   },
-  rowLabel: { color: "#666", fontSize: 10 },
-  rowValue: { fontSize: 10, fontWeight: "bold" },
+  rowLabel: { color: "#666", fontSize: 10, textAlign: "right" },
+  rowValue: { fontSize: 10, fontWeight: "bold", textAlign: "right" },
   table: { marginTop: 8 },
   tableHeader: {
     flexDirection: "row-reverse",
@@ -73,14 +74,14 @@ const styles = StyleSheet.create({
     padding: 6,
     borderRadius: 4,
   },
-  tableHeaderCell: { color: "#fff", fontSize: 9, flex: 1, textAlign: "center" },
+  tableHeaderCell: { color: "#fff", fontSize: 9, flex: 1, textAlign: "right" },
   tableRow: {
     flexDirection: "row-reverse",
     padding: 6,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
   },
-  tableCell: { fontSize: 9, flex: 1, textAlign: "center" },
+  tableCell: { fontSize: 9, flex: 1, textAlign: "right" },
   totalRow: {
     flexDirection: "row-reverse",
     padding: 8,
@@ -89,7 +90,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   totalLabel: { fontWeight: "bold", fontSize: 11, flex: 1, textAlign: "right" },
-  totalValue: { fontWeight: "bold", fontSize: 11, color: "#1a73e8" },
+  totalValue: { fontWeight: "bold", fontSize: 11, color: "#1a73e8", textAlign: "right" },
   footer: {
     marginTop: 20,
     padding: 12,
@@ -97,6 +98,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     fontSize: 9,
     color: "#856404",
+    textAlign: "right",
   },
   paymentBox: {
     marginTop: 12,
@@ -104,6 +106,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#1a73e8",
     borderRadius: 6,
+    textAlign: "right",
   },
 });
 
