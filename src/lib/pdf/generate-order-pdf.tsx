@@ -3,16 +3,17 @@ import { renderToBuffer } from "@react-pdf/renderer";
 import { prisma } from "@/lib/db";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { STATUS_LABELS } from "@/lib/orders/status-machine";
+import path from "path";
 
 Font.register({
   family: "Alef",
   fonts: [
     {
-      src: "https://fonts.gstatic.com/s/alef/v21/FeVQS0BTqb-Deo5rF1F2V5Ro.ttf",
+      src: path.resolve(process.cwd(), "public", "fonts", "alef-400.ttf"),
       fontWeight: 400,
     },
     {
-      src: "https://fonts.gstatic.com/s/alef/v21/FeVIS0BTqb-DeoZrGmF-bEVlUyg.ttf",
+      src: path.resolve(process.cwd(), "public", "fonts", "alef-700.ttf"),
       fontWeight: 700,
     },
   ],
