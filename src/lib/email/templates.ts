@@ -1,4 +1,4 @@
-import { sendActiveTrailEmail, getTemplateId } from "./activetrail";
+import { sendActiveTrailEmail, getTemplateId, EmailAttachment } from "./activetrail";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 interface EmailOrder {
@@ -54,17 +54,24 @@ function orderParams(order: EmailOrder): Record<string, string> {
   };
 }
 
-export async function sendOrderSubmittedEmail(order: EmailOrder) {
+export async function sendOrderSubmittedEmail(order: EmailOrder, pdfBuffer?: Buffer) {
+  const attachments: EmailAttachment[] = pdfBuffer
+    ? [{ name: `הזמנה-${order.orderNumber}.pdf`, content: pdfBuffer.toString("base64"), content_type: "application/pdf" }]
+    : [];
   await sendActiveTrailEmail(
     getTemplateId("ACTIVETRAIL_TEMPLATE_ORDER_SUBMITTED"),
     order.requester.email,
     orderParams(order),
-    `הזמנה ${order.orderNumber} הוגשה – מישקי דן`
+    `הזמנה ${order.orderNumber} הוגשה – מישקי דן`,
+    attachments
   );
 }
 
-export async function sendSignatoryRequestEmail(order: EmailOrder, approvalUrl: string) {
+export async function sendSignatoryRequestEmail(order: EmailOrder, approvalUrl: string, pdfBuffer?: Buffer) {
   const signatory = order.signatory!;
+  const attachments: EmailAttachment[] = pdfBuffer
+    ? [{ name: `הזמנה-${order.orderNumber}.pdf`, content: pdfBuffer.toString("base64"), content_type: "application/pdf" }]
+    : [];
   await sendActiveTrailEmail(
     getTemplateId("ACTIVETRAIL_TEMPLATE_SIGNATORY_REQUEST"),
     signatory.email,
@@ -74,7 +81,8 @@ export async function sendSignatoryRequestEmail(order: EmailOrder, approvalUrl: 
       reject_url: `${approvalUrl}&action=reject`,
       approval_url: approvalUrl,
     },
-    `נדרש אישורך – הזמנה ${order.orderNumber} | מישקי דן`
+    `נדרש אישורך – הזמנה ${order.orderNumber} | מישקי דן`,
+    attachments
   );
 }
 

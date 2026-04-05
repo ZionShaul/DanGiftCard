@@ -59,38 +59,38 @@ const styles = StyleSheet.create({
     color: "#1a73e8",
   },
   row: {
-    flexDirection: "row-reverse",
+    flexDirection: "row",
     justifyContent: "space-between",
     paddingVertical: 4,
     borderBottomWidth: 1,
     borderBottomColor: "#eeeeee",
   },
-  rowLabel: { color: "#666", fontSize: 10, textAlign: "right" },
-  rowValue: { fontSize: 10, fontWeight: "bold", textAlign: "right" },
+  rowLabel: { color: "#666", fontSize: 10, textAlign: "right", flex: 1 },
+  rowValue: { fontSize: 10, fontWeight: "bold", textAlign: "left", flex: 2 },
   table: { marginTop: 8 },
   tableHeader: {
-    flexDirection: "row-reverse",
+    flexDirection: "row",
     backgroundColor: "#1a73e8",
     padding: 6,
     borderRadius: 4,
   },
   tableHeaderCell: { color: "#fff", fontSize: 9, flex: 1, textAlign: "right" },
   tableRow: {
-    flexDirection: "row-reverse",
+    flexDirection: "row",
     padding: 6,
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
   },
   tableCell: { fontSize: 9, flex: 1, textAlign: "right" },
   totalRow: {
-    flexDirection: "row-reverse",
+    flexDirection: "row",
     padding: 8,
     backgroundColor: "#e8f0fe",
     borderRadius: 4,
     marginTop: 4,
   },
-  totalLabel: { fontWeight: "bold", fontSize: 11, flex: 1, textAlign: "right" },
-  totalValue: { fontWeight: "bold", fontSize: 11, color: "#1a73e8", textAlign: "right" },
+  totalLabel: { fontWeight: "bold", fontSize: 11, flex: 3, textAlign: "right" },
+  totalValue: { fontWeight: "bold", fontSize: 11, color: "#1a73e8", textAlign: "left", flex: 1 },
   footer: {
     marginTop: 20,
     padding: 12,
@@ -140,29 +140,29 @@ export async function generateOrderPdf(orderId: string): Promise<Buffer> {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>פרטי הזמנה</Text>
           <View style={styles.row}>
-            <Text style={styles.rowLabel}>ארגון:</Text>
             <Text style={styles.rowValue}>{order.organization.name}</Text>
+            <Text style={styles.rowLabel}>ארגון</Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.rowLabel}>חלון הזמנות:</Text>
             <Text style={styles.rowValue}>{order.orderWindow.name}</Text>
+            <Text style={styles.rowLabel}>חלון הזמנות</Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.rowLabel}>תאריך אספקה:</Text>
             <Text style={styles.rowValue}>{formatDate(order.orderWindow.deliveryDate)}</Text>
+            <Text style={styles.rowLabel}>תאריך אספקה</Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.rowLabel}>סטטוס:</Text>
             <Text style={styles.rowValue}>{STATUS_LABELS[order.status]}</Text>
+            <Text style={styles.rowLabel}>סטטוס</Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.rowLabel}>מגיש ההזמנה:</Text>
             <Text style={styles.rowValue}>{order.requester.fullName}</Text>
+            <Text style={styles.rowLabel}>מגיש ההזמנה</Text>
           </View>
           {order.signatory && (
             <View style={styles.row}>
-              <Text style={styles.rowLabel}>חתם מאשר:</Text>
               <Text style={styles.rowValue}>{order.signatory.fullName}</Text>
+              <Text style={styles.rowLabel}>מורשה חתימה</Text>
             </View>
           )}
         </View>
@@ -172,24 +172,24 @@ export async function generateOrderPdf(orderId: string): Promise<Buffer> {
           <Text style={styles.sectionTitle}>פירוט הזמנה</Text>
           <View style={styles.table}>
             <View style={styles.tableHeader}>
-              <Text style={styles.tableHeaderCell}>סוג כרטיס</Text>
-              <Text style={styles.tableHeaderCell}>כמות</Text>
-              <Text style={styles.tableHeaderCell}>טעינה לכרטיס</Text>
+              <Text style={[styles.tableHeaderCell, { textAlign: "left" }]}>לתשלום</Text>
               <Text style={styles.tableHeaderCell}>הנחה</Text>
-              <Text style={styles.tableHeaderCell}>לתשלום</Text>
+              <Text style={styles.tableHeaderCell}>טעינה לכרטיס</Text>
+              <Text style={styles.tableHeaderCell}>כמות</Text>
+              <Text style={[styles.tableHeaderCell, { flex: 2 }]}>סוג כרטיס</Text>
             </View>
             {order.items.map((item) => (
               <View key={item.id} style={styles.tableRow}>
-                <Text style={styles.tableCell}>{item.cardType.nameHe}</Text>
-                <Text style={styles.tableCell}>{item.quantity}</Text>
-                <Text style={styles.tableCell}>₪{Number(item.loadAmount).toLocaleString()}</Text>
+                <Text style={[styles.tableCell, { textAlign: "left" }]}>{formatCurrency(Number(item.payableTotal))}</Text>
                 <Text style={styles.tableCell}>{Number(item.discountPct)}%</Text>
-                <Text style={styles.tableCell}>{formatCurrency(Number(item.payableTotal))}</Text>
+                <Text style={styles.tableCell}>{formatCurrency(Number(item.loadAmount))}</Text>
+                <Text style={styles.tableCell}>{item.quantity}</Text>
+                <Text style={[styles.tableCell, { flex: 2 }]}>{item.cardType.nameHe}</Text>
               </View>
             ))}
             <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>סה״כ ({order.totalCards} כרטיסים):</Text>
               <Text style={styles.totalValue}>{formatCurrency(Number(order.totalPayable))}</Text>
+              <Text style={styles.totalLabel}>סה״כ ({order.totalCards} כרטיסים)</Text>
             </View>
           </View>
         </View>

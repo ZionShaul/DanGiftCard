@@ -110,7 +110,7 @@ export default function NewOrderPage() {
       return;
     }
     if (!selectedSignatory) {
-      setError("יש לבחור חתם");
+      setError("יש לבחור מורשה חתימה");
       return;
     }
 
@@ -393,13 +393,13 @@ export default function NewOrderPage() {
           </div>
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-slate-700 mb-1">בחר חתם לאישור</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">בחר מורשה חתימה לאישור</label>
             <select
               value={selectedSignatory}
               onChange={(e) => setSelectedSignatory(e.target.value)}
               className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
             >
-              <option value="">-- בחר חתם --</option>
+              <option value="">-- בחר מורשה חתימה --</option>
               {signatories.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.fullName} ({s.email})

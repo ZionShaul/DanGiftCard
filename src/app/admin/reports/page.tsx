@@ -55,8 +55,8 @@ export default function ReportsPage() {
             >
               <option value="">כל הסטטוסים</option>
               <option value="draft">טיוטה</option>
-              <option value="pending_signatory">ממתין לחתם</option>
-              <option value="rejected_signatory">נדחה ע&quot;י חתם</option>
+              <option value="pending_signatory">ממתין למורשה חתימה</option>
+              <option value="rejected_signatory">נדחה ע&quot;י מורשה חתימה</option>
               <option value="pending_admin">ממתין למנהל</option>
               <option value="approved">מאושר</option>
               <option value="cancelled">בוטל</option>
@@ -87,7 +87,7 @@ export default function ReportsPage() {
         </div>
 
         <p className="text-xs text-slate-400">
-          הייצוא כולל: מספר הזמנה, ארגון, חלון, סטטוס, מגיש, חתם, כמות כרטיסים, סכומים, תאריכים.
+          הייצוא כולל: מספר הזמנה, ארגון, חלון, סטטוס, מגיש, מורשה חתימה, כמות כרטיסים, סכומים, תאריכים.
         </p>
       </div>
     </div>

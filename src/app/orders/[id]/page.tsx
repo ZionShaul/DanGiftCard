@@ -100,7 +100,7 @@ export default async function OrderDetailPage({
       {/* Rejection comment banner */}
       {order.status === "rejected_signatory" && order.signatoryComment && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
-          <p className="font-semibold text-red-800">נדחתה על ידי החתם</p>
+          <p className="font-semibold text-red-800">נדחתה על ידי מורשה החתימה</p>
           <p className="text-red-700 text-sm mt-1">{order.signatoryComment}</p>
         </div>
       )}
@@ -110,7 +110,7 @@ export default async function OrderDetailPage({
         <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6">
           <p className="font-semibold text-green-800">ההזמנה הוגשה בהצלחה!</p>
           <p className="text-green-700 text-sm mt-0.5">
-            נשלחה הודעה לחתם {order.signatory?.fullName} לאישור.
+            נשלחה הודעה למורשה החתימה {order.signatory?.fullName} לאישור.
           </p>
         </div>
       )}
@@ -140,7 +140,7 @@ export default async function OrderDetailPage({
             </div>
             {order.signatory && (
               <div className="flex justify-between">
-                <dt className="text-slate-500">חתם</dt>
+                <dt className="text-slate-500">מורשה חתימה</dt>
                 <dd className="text-slate-800">{order.signatory.fullName}</dd>
               </div>
             )}

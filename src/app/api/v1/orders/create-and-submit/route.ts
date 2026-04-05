@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { generateOrderNumber } from "@/lib/utils";
 import { createApprovalToken } from "@/lib/auth/approval-token";
 import { sendOrderSubmittedEmail, sendSignatoryRequestEmail } from "@/lib/email/templates";
+import { generateOrderPdf } from "@/lib/pdf/generate-order-pdf";
 import { calculateItemTotals, calculateOrderTotals } from "@/lib/orders/calculations";
 import { z } from "zod";
 
@@ -60,7 +61,7 @@ export async function POST(req: NextRequest) {
     where: { id: signatoryId, role: "signatory", isActive: true },
   });
   if (!signatory || signatory.organizationId !== session.user.organizationId) {
-    return NextResponse.json({ error: "חתם לא נמצא בארגון זה" }, { status: 400 });
+    return NextResponse.json({ error: "מורשה חתימה לא נמצא בארגון זה" }, { status: 400 });
   }
 
   // Validate card types and calculate totals
@@ -185,9 +186,10 @@ export async function POST(req: NextRequest) {
         signatory: { fullName: signatory.fullName, email: signatory.email },
       };
 
+      const pdfBuffer = await generateOrderPdf(order.id).catch(() => undefined);
       await Promise.all([
-        sendOrderSubmittedEmail(emailOrder),
-        sendSignatoryRequestEmail(emailOrder, approvalUrl),
+        sendOrderSubmittedEmail(emailOrder, pdfBuffer),
+        sendSignatoryRequestEmail(emailOrder, approvalUrl, pdfBuffer),
       ]);
     } catch {
       // Email errors don't fail the order

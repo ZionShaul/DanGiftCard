@@ -52,7 +52,7 @@ export async function GET() {
     { header: "חלון הזמנות", key: "window", width: 22 },
     { header: "סטטוס", key: "status", width: 22 },
     { header: "מגיש", key: "requester", width: 22 },
-    { header: "חתם", key: "signatory", width: 22 },
+    { header: "מורשה חתימה", key: "signatory", width: 22 },
     { header: "כרטיסים", key: "totalCards", width: 10 },
     { header: "סכום נקוב (₪)", key: "totalFaceValue", width: 16 },
     { header: "לתשלום (₪)", key: "totalPayable", width: 14 },

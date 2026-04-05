@@ -123,7 +123,7 @@ export default function EditOrderForm({
 
   async function handleSubmit() {
     if (!signatoryId) {
-      setError("יש לבחור חתם לפני הגשה");
+      setError("יש לבחור מורשה חתימה לפני הגשה");
       return;
     }
     if (items.length === 0) {
@@ -268,13 +268,13 @@ export default function EditOrderForm({
 
       {/* Signatory */}
       <div className="bg-white rounded-xl border border-slate-200 p-6">
-        <h2 className="font-semibold text-slate-700 mb-4">חתם לאישור</h2>
+        <h2 className="font-semibold text-slate-700 mb-4">מורשה חתימה לאישור</h2>
         <select
           value={signatoryId}
           onChange={(e) => setSignatoryId(e.target.value)}
           className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm"
         >
-          <option value="">-- בחר חתם --</option>
+          <option value="">-- בחר מורשה חתימה --</option>
           {signatories.map((s) => (
             <option key={s.id} value={s.id}>
               {s.fullName} ({s.email})

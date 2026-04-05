@@ -31,8 +31,8 @@ export function canTransition(from: OrderStatus, to: OrderStatus, role: UserRole
 
 export const STATUS_LABELS: Record<OrderStatus, string> = {
   draft: "טיוטה",
-  pending_signatory: "ממתין לאישור חתם",
-  rejected_signatory: "נדחה ע״י חתם",
+  pending_signatory: "ממתין לאישור מורשה חתימה",
+  rejected_signatory: "נדחה ע״י מורשה חתימה",
   pending_admin: "ממתין לאישור מנהל",
   approved: "מאושר",
   cancelled: "בוטל",
