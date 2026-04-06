@@ -23,7 +23,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       organization: true,
       orderWindow: true,
       requester: { select: { fullName: true, email: true } },
-      items: true,
+      items: { include: { cardType: { select: { nameHe: true } } } },
     },
   });
 
@@ -97,6 +97,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     totalPayable: Number(order.totalPayable),
     requester: order.requester,
     signatory: { fullName: signatory.fullName, email: signatory.email },
+    items: order.items.map((i) => ({
+      cardTypeName: i.cardType.nameHe,
+      quantity: i.quantity,
+      loadAmount: Number(i.loadAmount),
+      discountPct: Number(i.discountPct),
+      payableTotal: Number(i.payableTotal),
+    })),
   };
 
   const pdfLink = `${baseUrl}/api/approval/${approvalToken}/pdf`;

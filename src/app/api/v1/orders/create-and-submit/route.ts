@@ -183,6 +183,13 @@ export async function POST(req: NextRequest) {
         totalPayable: Number(order.totalPayable),
         requester,
         signatory: { fullName: signatory.fullName, email: signatory.email },
+        items: itemsWithTotals.map((i) => ({
+          cardTypeName: cardTypeMap.get(i.cardTypeId)?.nameHe ?? i.cardTypeId,
+          quantity: i.quantity,
+          loadAmount: i.loadAmount,
+          discountPct: Number(cardTypeMap.get(i.cardTypeId)?.discountPct ?? 0),
+          payableTotal: i.payableTotal,
+        })),
       };
 
       const pdfLink = `${baseUrl}/api/approval/${approvalToken}/pdf`;
