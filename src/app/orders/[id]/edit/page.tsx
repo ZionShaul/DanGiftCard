@@ -32,7 +32,7 @@ export default async function EditOrderPage({
 
   if (order.requesterId !== user.id) notFound();
 
-  if (order.status !== "draft" && order.status !== "rejected_signatory") {
+  if (order.status !== "draft" && order.status !== "rejected_signatory" && order.status !== "pending_signatory") {
     redirect(`/orders/${id}`);
   }
 

@@ -242,7 +242,7 @@ export default async function OrderDetailPage({
         >
           חזור לרשימת ההזמנות
         </Link>
-        {(order.status === "draft" || order.status === "rejected_signatory") &&
+        {(order.status === "draft" || order.status === "rejected_signatory" || order.status === "pending_signatory") &&
           user.role === "requester" &&
           order.requesterId === user.id && (
             <div className="flex items-center gap-3">

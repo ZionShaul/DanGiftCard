@@ -4,7 +4,6 @@ import { prisma } from "@/lib/db";
 import { generateOrderNumber } from "@/lib/utils";
 import { createApprovalToken } from "@/lib/auth/approval-token";
 import { sendOrderSubmittedEmail, sendSignatoryRequestEmail } from "@/lib/email/templates";
-import { generateOrderPdf } from "@/lib/pdf/generate-order-pdf";
 import { calculateItemTotals, calculateOrderTotals } from "@/lib/orders/calculations";
 import { z } from "zod";
 
@@ -186,10 +185,11 @@ export async function POST(req: NextRequest) {
         signatory: { fullName: signatory.fullName, email: signatory.email },
       };
 
-      const pdfBuffer = await generateOrderPdf(order.id).catch(() => undefined);
+      const pdfLink = `${baseUrl}/api/approval/${approvalToken}/pdf`;
+      const orderLink = `${baseUrl}/orders/${order.id}`;
       await Promise.all([
-        sendOrderSubmittedEmail(emailOrder, pdfBuffer),
-        sendSignatoryRequestEmail(emailOrder, approvalUrl, pdfBuffer),
+        sendOrderSubmittedEmail(emailOrder, orderLink),
+        sendSignatoryRequestEmail(emailOrder, approvalUrl, pdfLink),
       ]);
     } catch {
       // Email errors don't fail the order

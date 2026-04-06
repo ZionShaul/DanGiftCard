@@ -61,9 +61,10 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   if (order.requesterId !== session.user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  if (order.status !== "draft" && order.status !== "rejected_signatory") {
-    return NextResponse.json({ error: "לא ניתן לערוך הזמנה שאינה טיוטה" }, { status: 400 });
+  if (order.status !== "draft" && order.status !== "rejected_signatory" && order.status !== "pending_signatory") {
+    return NextResponse.json({ error: "לא ניתן לערוך הזמנה בסטטוס זה" }, { status: 400 });
   }
+  const wasAwaitingSignatory = order.status === "pending_signatory";
 
   const body = await req.json();
   const parsed = updateSchema.safeParse(body);
@@ -132,12 +133,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         totalCards: orderTotals.totalCards,
         totalFaceValue: orderTotals.totalFaceValue,
         totalPayable: orderTotals.totalPayable,
+        ...(wasAwaitingSignatory ? { status: "draft" } : {}),
         ...(parsed.data.notes !== undefined ? { notes: parsed.data.notes } : {}),
         ...(parsed.data.signatoryId !== undefined ? { signatoryId: parsed.data.signatoryId } : {}),
       },
     });
   } else {
     const updateData: Record<string, unknown> = {};
+    if (wasAwaitingSignatory) updateData.status = "draft";
     if (parsed.data.notes !== undefined) updateData.notes = parsed.data.notes;
     if (parsed.data.signatoryId !== undefined) updateData.signatoryId = parsed.data.signatoryId;
     if (Object.keys(updateData).length > 0) {
@@ -160,7 +163,7 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
   if (order.requesterId !== session.user.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  if (order.status !== "draft" && order.status !== "rejected_signatory") {
+  if (order.status !== "draft" && order.status !== "rejected_signatory" && order.status !== "pending_signatory") {
     return NextResponse.json({ error: "לא ניתן למחוק הזמנה בסטטוס זה" }, { status: 400 });
   }
 

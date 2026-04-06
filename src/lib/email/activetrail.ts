@@ -13,18 +13,11 @@ const ACTIVETRAIL_BASE = "https://webapi.mymarketing.co.il/api";
  * Merge variables in the template use $$key$$ syntax.
  * pairs[].key corresponds to the part between $$ in the template.
  */
-export interface EmailAttachment {
-  name: string;
-  content: string; // base64
-  content_type: string;
-}
-
 export async function sendActiveTrailEmail(
   templateId: number,
   toEmail: string,
   parameters: Record<string, string>,
-  subject: string = "הודעה ממישקי דן",
-  attachments?: EmailAttachment[]
+  subject: string = "הודעה ממישקי דן"
 ): Promise<void> {
   if (!templateId) {
     console.warn(`[ActiveTrail] templateId is 0 – skipping send to ${toEmail}`);
@@ -39,17 +32,8 @@ export async function sendActiveTrailEmail(
 
   const pairs = Object.entries(parameters).map(([key, value]) => ({ key, value }));
 
-  const emailPackageEntry: Record<string, unknown> = { email: toEmail, pairs };
-  if (attachments && attachments.length > 0) {
-    emailPackageEntry.files = attachments.map((a) => ({
-      name: a.name,
-      content: a.content,
-      content_type: a.content_type,
-    }));
-  }
-
   const body = JSON.stringify({
-    email_package: [emailPackageEntry],
+    email_package: [{ email: toEmail, pairs }],
     details: {
       name: subject,
       subject,

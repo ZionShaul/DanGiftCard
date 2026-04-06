@@ -1,4 +1,4 @@
-import { sendActiveTrailEmail, getTemplateId, EmailAttachment } from "./activetrail";
+import { sendActiveTrailEmail, getTemplateId } from "./activetrail";
 import { formatCurrency, formatDate } from "@/lib/utils";
 
 interface EmailOrder {
@@ -54,24 +54,20 @@ function orderParams(order: EmailOrder): Record<string, string> {
   };
 }
 
-export async function sendOrderSubmittedEmail(order: EmailOrder, pdfBuffer?: Buffer) {
-  const attachments: EmailAttachment[] = pdfBuffer
-    ? [{ name: `הזמנה-${order.orderNumber}.pdf`, content: pdfBuffer.toString("base64"), content_type: "application/pdf" }]
-    : [];
+export async function sendOrderSubmittedEmail(order: EmailOrder, orderLink?: string) {
   await sendActiveTrailEmail(
     getTemplateId("ACTIVETRAIL_TEMPLATE_ORDER_SUBMITTED"),
     order.requester.email,
-    orderParams(order),
-    `הזמנה ${order.orderNumber} הוגשה – מישקי דן`,
-    attachments
+    {
+      ...orderParams(order),
+      ...(orderLink ? { order_link: orderLink } : {}),
+    },
+    `הזמנה ${order.orderNumber} הוגשה – מישקי דן`
   );
 }
 
-export async function sendSignatoryRequestEmail(order: EmailOrder, approvalUrl: string, pdfBuffer?: Buffer) {
+export async function sendSignatoryRequestEmail(order: EmailOrder, approvalUrl: string, pdfLink?: string) {
   const signatory = order.signatory!;
-  const attachments: EmailAttachment[] = pdfBuffer
-    ? [{ name: `הזמנה-${order.orderNumber}.pdf`, content: pdfBuffer.toString("base64"), content_type: "application/pdf" }]
-    : [];
   await sendActiveTrailEmail(
     getTemplateId("ACTIVETRAIL_TEMPLATE_SIGNATORY_REQUEST"),
     signatory.email,
@@ -80,9 +76,9 @@ export async function sendSignatoryRequestEmail(order: EmailOrder, approvalUrl: 
       approve_url: `${approvalUrl}&action=approve`,
       reject_url: `${approvalUrl}&action=reject`,
       approval_url: approvalUrl,
+      ...(pdfLink ? { pdf_link: pdfLink } : {}),
     },
-    `נדרש אישורך – הזמנה ${order.orderNumber} | מישקי דן`,
-    attachments
+    `נדרש אישורך – הזמנה ${order.orderNumber} | מישקי דן`
   );
 }
 

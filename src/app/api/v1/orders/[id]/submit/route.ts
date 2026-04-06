@@ -3,7 +3,6 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { createApprovalToken } from "@/lib/auth/approval-token";
 import { sendOrderSubmittedEmail, sendSignatoryRequestEmail } from "@/lib/email/templates";
-import { generateOrderPdf } from "@/lib/pdf/generate-order-pdf";
 import { z } from "zod";
 
 const schema = z.object({
@@ -100,10 +99,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     signatory: { fullName: signatory.fullName, email: signatory.email },
   };
 
-  const pdfBuffer = await generateOrderPdf(id).catch(() => undefined);
+  const pdfLink = `${baseUrl}/api/approval/${approvalToken}/pdf`;
+  const orderLink = `${baseUrl}/orders/${id}`;
   await Promise.all([
-    sendOrderSubmittedEmail(emailOrder, pdfBuffer),
-    sendSignatoryRequestEmail(emailOrder, approvalUrl, pdfBuffer),
+    sendOrderSubmittedEmail(emailOrder, orderLink),
+    sendSignatoryRequestEmail(emailOrder, approvalUrl, pdfLink),
   ]);
 
   void editUrl; // used for rejection later
