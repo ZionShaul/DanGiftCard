@@ -26,6 +26,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       orderWindow: true,
       requester: { select: { fullName: true, email: true } },
       signatory: { select: { fullName: true, email: true } },
+      items: { include: { cardType: { select: { nameHe: true } } } },
     },
   });
 
@@ -70,6 +71,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       totalPayable: Number(order.totalPayable),
       requester: order.requester,
       signatory: order.signatory,
+      items: order.items.map((i) => ({
+        cardTypeName: i.cardType.nameHe,
+        quantity: i.quantity,
+        loadAmount: Number(i.loadAmount),
+        discountPct: Number(i.discountPct),
+        payableTotal: Number(i.payableTotal),
+      })),
     },
     parsed.data.comment,
     editUrl

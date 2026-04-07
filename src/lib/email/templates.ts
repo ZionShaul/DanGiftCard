@@ -133,16 +133,20 @@ export async function sendSignatoryRejectedEmail(
   comment: string,
   editUrl: string
 ) {
+  const params: Record<string, string> = {
+    ...orderParams(order),
+    organization_name: order.organization.name,
+    reject_reason: comment,
+    order_link: editUrl,
+    edit_url: editUrl,
+  };
+  if (order.items && order.items.length > 0) {
+    params.items_html = buildItemsHtml(order.items, order.totalPayable);
+  }
   await sendActiveTrailEmail(
     getTemplateId("ACTIVETRAIL_TEMPLATE_SIGNATORY_REJECTED"),
     order.requester.email,
-    {
-      order_number: order.orderNumber,
-      org_name: order.organization.name,
-      signatory_name: order.signatory?.fullName ?? "",
-      comment,
-      edit_url: editUrl,
-    },
+    params,
     `הזמנה ${order.orderNumber} נדחתה – מישקי דן`
   );
 }
