@@ -173,6 +173,15 @@ export async function sendAdminPendingEmail(
   );
 }
 
+export async function sendOtpEmail(email: string, code: string) {
+  await sendActiveTrailEmail(
+    getTemplateId("ACTIVETRAIL_TEMPLATE_OTP"),
+    email,
+    { otp_code: code, expiry: "15 דקות" },
+    "קוד הכניסה שלך – מישקי דן"
+  );
+}
+
 export async function sendOrderApprovedEmail(order: EmailOrder) {
   await sendActiveTrailEmail(
     getTemplateId("ACTIVETRAIL_TEMPLATE_ORDER_APPROVED"),

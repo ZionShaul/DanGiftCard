@@ -26,6 +26,16 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const email = (credentials?.email as string | undefined)?.trim().toLowerCase();
         if (!email) return null;
 
+        // בדוק verified token — נוצר ע"י /api/auth/otp/verify לאחר אימות קוד OTP
+        const verifiedIdentifier = `verified:${email}`;
+        const verified = await prisma.verificationToken.findFirst({
+          where: { identifier: verifiedIdentifier, expires: { gt: new Date() } },
+        });
+        if (!verified) return null;
+
+        // מחק token — שימוש חד-פעמי
+        await prisma.verificationToken.deleteMany({ where: { identifier: verifiedIdentifier } });
+
         const user = await prisma.user.findUnique({
           where: { email },
           select: { id: true, email: true, fullName: true, role: true, organizationId: true, isActive: true },
