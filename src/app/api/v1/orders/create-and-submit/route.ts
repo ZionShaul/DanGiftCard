@@ -154,19 +154,18 @@ export async function POST(req: NextRequest) {
     return created;
   });
 
-  // Send emails (best-effort, errors don't fail the order)
-  void (async () => {
-    try {
-      const [organization, requester] = await Promise.all([
-        prisma.organization.findUnique({ where: { id: session.user.organizationId! } }),
-        prisma.user.findUnique({
-          where: { id: session.user.id },
-          select: { fullName: true, email: true },
-        }),
-      ]);
+  // Send emails — awaited before response so Vercel doesn't terminate before sending
+  let emailError: string | null = null;
+  try {
+    const [organization, requester] = await Promise.all([
+      prisma.organization.findUnique({ where: { id: session.user.organizationId! } }),
+      prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { fullName: true, email: true },
+      }),
+    ]);
 
-      if (!organization || !requester) return;
-
+    if (organization && requester) {
       const approvalToken = await createApprovalToken(order.id, signatory.id);
       const vercelUrl = process.env.VERCEL_URL;
       const baseUrl =
@@ -198,10 +197,15 @@ export async function POST(req: NextRequest) {
         sendOrderSubmittedEmail(emailOrder, orderLink),
         sendSignatoryRequestEmail(emailOrder, approvalUrl, pdfLink),
       ]);
-    } catch {
-      // Email errors don't fail the order
     }
-  })();
+  } catch (err) {
+    emailError = err instanceof Error ? err.message : "שגיאה לא ידועה בשליחת מייל";
+    console.error("[create-and-submit] email error:", emailError);
+  }
 
-  return NextResponse.json({ id: order.id, orderNumber: order.orderNumber }, { status: 201 });
+  return NextResponse.json({
+    id: order.id,
+    orderNumber: order.orderNumber,
+    ...(emailError ? { emailWarning: emailError } : {}),
+  }, { status: 201 });
 }
