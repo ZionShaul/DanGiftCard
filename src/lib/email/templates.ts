@@ -114,6 +114,7 @@ export async function sendSignatoryRequestEmail(order: EmailOrder, approvalUrl: 
     approve_url: `${approvalUrl}&action=approve`,
     reject_url: `${approvalUrl}&action=reject`,
     approval_url: approvalUrl,
+    order_link: approvalUrl,
   };
   if (pdfLink) params.pdf_link = pdfLink;
   if (order.items && order.items.length > 0) {
