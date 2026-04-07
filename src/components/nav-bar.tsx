@@ -31,7 +31,13 @@ function getLinks(role: UserRole) {
   return requesterLinks;
 }
 
-export default function NavBar({ role }: { role: UserRole }) {
+interface NavBarProps {
+  role: UserRole;
+  userName?: string;
+  orgName?: string;
+}
+
+export default function NavBar({ role, userName, orgName }: NavBarProps) {
   const pathname = usePathname();
   const links = getLinks(role);
 
@@ -55,12 +61,28 @@ export default function NavBar({ role }: { role: UserRole }) {
           </Link>
         ))}
       </div>
-      <button
-        onClick={() => signOut({ callbackUrl: "/login" })}
-        className="text-sm text-slate-500 hover:text-slate-700 transition-colors"
-      >
-        יציאה
-      </button>
+
+      <div className="flex items-center gap-4 text-sm">
+        {(userName || orgName) && (
+          <div className="flex items-center gap-2 text-slate-600">
+            {orgName && (
+              <span className="font-medium text-slate-700">{orgName}</span>
+            )}
+            {orgName && userName && (
+              <span className="text-slate-300">|</span>
+            )}
+            {userName && (
+              <span>{userName}</span>
+            )}
+          </div>
+        )}
+        <button
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className="text-slate-500 hover:text-slate-700 transition-colors"
+        >
+          יציאה
+        </button>
+      </div>
     </nav>
   );
 }
