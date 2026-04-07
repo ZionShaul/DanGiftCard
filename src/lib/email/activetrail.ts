@@ -17,7 +17,7 @@ export async function sendActiveTrailEmail(
   templateId: number,
   toEmail: string,
   parameters: Record<string, string>,
-  subject: string = "הודעה ממישקי דן"
+  subject: string = "הודעה ממשקי דן"
 ): Promise<void> {
   if (!templateId) {
     console.warn(`[ActiveTrail] templateId is 0 – skipping send to ${toEmail}`);

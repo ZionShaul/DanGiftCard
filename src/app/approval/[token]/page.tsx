@@ -78,7 +78,7 @@ export default function ApprovalPage({ params }: { params: Promise<{ token: stri
       <div className="w-full max-w-lg">
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
           <div className="bg-blue-600 px-6 py-5 text-white">
-            <h1 className="text-xl font-bold">מישקי דן – אישור הזמנת תווי שי</h1>
+            <h1 className="text-xl font-bold">משקי דן – אישור הזמנת תווי שי</h1>
           </div>
 
           <div className="p-6">
@@ -112,7 +112,7 @@ export default function ApprovalPage({ params }: { params: Promise<{ token: stri
                 </h2>
                 <p className="text-slate-500 text-sm">
                   {result === "approved"
-                    ? "ההזמנה הועברה לאישור מנהל מישקי דן. תודה!"
+                    ? "ההזמנה הועברה לאישור מנהל משקי דן. תודה!"
                     : "המגיש יקבל הודעה ויוכל לתקן ולהגיש מחדש."}
                 </p>
               </div>
@@ -205,7 +205,7 @@ export default function ApprovalPage({ params }: { params: Promise<{ token: stri
         </div>
 
         <p className="text-center text-xs text-slate-400 mt-4">
-          מישקי דן | mishkeydan@mishkeydan.co.il | 08-8611861
+          משקי דן | mishkeydan@mishkeydan.co.il | 08-8611861
         </p>
       </div>
     </div>

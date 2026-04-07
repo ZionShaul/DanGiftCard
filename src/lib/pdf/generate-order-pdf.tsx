@@ -130,7 +130,7 @@ export async function generateOrderPdf(orderId: string): Promise<Buffer> {
       <Page size="A4" style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>מישקי דן – הזמנת תווי שי</Text>
+          <Text style={styles.headerTitle}>משקי דן – הזמנת תווי שי</Text>
           <Text style={styles.headerSub}>
             {order.orderNumber} | {formatDate(order.createdAt)}
           </Text>
@@ -198,7 +198,7 @@ export async function generateOrderPdf(orderId: string): Promise<Buffer> {
         <View style={styles.paymentBox}>
           <Text style={{ ...styles.sectionTitle, marginBottom: 6 }}>פרטי תשלום</Text>
           <Text style={{ fontSize: 10, lineHeight: 1.6 }}>בנק הפועלים (12) | סניף 412 | חשבון 697890</Text>
-          <Text style={{ fontSize: 10, lineHeight: 1.6 }}>שם החשבון: מישקי הדרום אשראי ורכישות</Text>
+          <Text style={{ fontSize: 10, lineHeight: 1.6 }}>שם החשבון: משקי הדרום אשראי ורכישות</Text>
           <Text style={{ fontSize: 10, lineHeight: 1.6 }}>לתשלום: {formatCurrency(Number(order.totalPayable))}</Text>
         </View>
 

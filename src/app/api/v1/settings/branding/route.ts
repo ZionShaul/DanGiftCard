@@ -6,7 +6,7 @@ const DEFAULT_BRANDING = {
   logoUrl: null,
   primaryColor: "#1a73e8",
   secondaryColor: "#fbbc04",
-  welcomeText: "ברוכים הבאים למערכת הזמנות תווי השי של מישקי דן",
+  welcomeText: "ברוכים הבאים למערכת הזמנות תווי השי של משקי דן",
 };
 
 export async function GET() {

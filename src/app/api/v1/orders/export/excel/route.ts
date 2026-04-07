@@ -35,7 +35,7 @@ export async function GET() {
   });
 
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = "מישקי דן";
+  workbook.creator = "משקי דן";
   workbook.created = new Date();
 
   const ws = workbook.addWorksheet("הזמנות", { views: [{ rightToLeft: true }] });

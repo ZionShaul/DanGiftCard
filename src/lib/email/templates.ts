@@ -103,7 +103,7 @@ export async function sendOrderSubmittedEmail(order: EmailOrder, orderLink?: str
     getTemplateId("ACTIVETRAIL_TEMPLATE_ORDER_SUBMITTED"),
     order.requester.email,
     params,
-    `הזמנה ${order.orderNumber} הוגשה – מישקי דן`
+    `הזמנה ${order.orderNumber} הוגשה – משקי דן`
   );
 }
 
@@ -124,7 +124,7 @@ export async function sendSignatoryRequestEmail(order: EmailOrder, approvalUrl: 
     getTemplateId("ACTIVETRAIL_TEMPLATE_SIGNATORY_REQUEST"),
     signatory.email,
     params,
-    `נדרש אישורך – הזמנה ${order.orderNumber} | מישקי דן`
+    `נדרש אישורך – הזמנה ${order.orderNumber} | משקי דן`
   );
 }
 
@@ -147,7 +147,7 @@ export async function sendSignatoryRejectedEmail(
     getTemplateId("ACTIVETRAIL_TEMPLATE_SIGNATORY_REJECTED"),
     order.requester.email,
     params,
-    `הזמנה ${order.orderNumber} נדחתה – מישקי דן`
+    `הזמנה ${order.orderNumber} נדחתה – משקי דן`
   );
 }
 
@@ -169,7 +169,7 @@ export async function sendAdminPendingEmail(
     getTemplateId("ACTIVETRAIL_TEMPLATE_ADMIN_PENDING"),
     adminEmail,
     params,
-    `הזמנה ${order.orderNumber} ממתינה לאישורך – מישקי דן`
+    `הזמנה ${order.orderNumber} ממתינה לאישורך – משקי דן`
   );
 }
 
@@ -178,7 +178,7 @@ export async function sendOtpEmail(email: string, code: string) {
     getTemplateId("ACTIVETRAIL_TEMPLATE_OTP"),
     email,
     { otp_code: code, expiry: "15 דקות" },
-    "קוד הכניסה שלך – מישקי דן"
+    "קוד הכניסה שלך – משקי דן"
   );
 }
 
@@ -187,6 +187,6 @@ export async function sendOrderApprovedEmail(order: EmailOrder) {
     getTemplateId("ACTIVETRAIL_TEMPLATE_ORDER_APPROVED"),
     order.requester.email,
     orderParams(order),
-    `הזמנה ${order.orderNumber} אושרה! – מישקי דן`
+    `הזמנה ${order.orderNumber} אושרה! – משקי דן`
   );
 }

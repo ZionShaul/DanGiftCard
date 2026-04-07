@@ -9,8 +9,8 @@ const heebo = Heebo({
 });
 
 export const metadata: Metadata = {
-  title: "מישקי דן – הזמנת תווי שי",
-  description: "מערכת הזמנות תווי שי לחג – מישקי דן",
+  title: "משקי דן – הזמנת תווי שי",
+  description: "מערכת הזמנות תווי שי לחג – משקי דן",
 };
 
 export default function RootLayout({

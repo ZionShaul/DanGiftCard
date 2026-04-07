@@ -93,7 +93,7 @@ export default function LoginForm() {
         <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <span className="text-white text-2xl font-bold">מ</span>
         </div>
-        <h1 className="text-2xl font-bold text-slate-800">מישקי דן</h1>
+        <h1 className="text-2xl font-bold text-slate-800">משקי דן</h1>
         <p className="text-slate-500 mt-1">מערכת הזמנת תווי שי</p>
       </div>
 

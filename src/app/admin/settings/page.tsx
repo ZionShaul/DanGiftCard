@@ -47,8 +47,8 @@ function toLocalDateValue(iso: string) {
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Settings>({
-    welcomeText: "ברוכים הבאים למערכת הזמנות תווי השי של מישקי דן",
-    paymentDetails: "בנק: הפועלים (12)\nסניף: 412\nחשבון: 697890\nשם: מישקי הדרום אשראי ורכישות",
+    welcomeText: "ברוכים הבאים למערכת הזמנות תווי השי של משקי דן",
+    paymentDetails: "בנק: הפועלים (12)\nסניף: 412\nחשבון: 697890\nשם: משקי הדרום אשראי ורכישות",
     primaryColor: "#2563eb",
     secondaryColor: "#fbbc04",
   });
@@ -182,7 +182,7 @@ export default function SettingsPage() {
             onChange={(e) => setSettings({ ...settings, paymentDetails: e.target.value })}
             rows={5}
             className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder={"בנק: הפועלים (12)\nסניף: 412\nחשבון: 697890\nשם: מישקי הדרום אשראי ורכישות"}
+            placeholder={"בנק: הפועלים (12)\nסניף: 412\nחשבון: 697890\nשם: משקי הדרום אשראי ורכישות"}
             dir="rtl"
           />
           <p className="text-xs text-slate-400 mt-1">ניתן לכתוב מספר שורות — יופיע כפי שנכתב</p>

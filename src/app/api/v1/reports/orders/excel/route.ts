@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
   });
 
   const workbook = new ExcelJS.Workbook();
-  workbook.creator = "מישקי דן";
+  workbook.creator = "משקי דן";
   workbook.created = new Date();
 
   const ws = workbook.addWorksheet("הזמנות", {

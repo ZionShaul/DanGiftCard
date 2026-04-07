@@ -21,7 +21,7 @@ export async function getEmailSettings() {
 
 export async function getFromAddress(): Promise<string> {
   const settings = await getEmailSettings();
-  const name = settings.fromName ?? "מישקי דן";
+  const name = settings.fromName ?? "משקי דן";
   const email = settings.fromEmail ?? (process.env.EMAIL_FROM ?? "noreply@mishkeydan.co.il");
   return `${name} <${email}>`;
 }
