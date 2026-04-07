@@ -152,13 +152,19 @@ export async function sendAdminPendingEmail(
   adminEmail: string,
   adminUrl: string
 ) {
+  const params: Record<string, string> = {
+    ...orderParams(order),
+    organization_name: order.organization.name,
+    order_link: adminUrl,
+    admin_url: adminUrl,
+  };
+  if (order.items && order.items.length > 0) {
+    params.items_html = buildItemsHtml(order.items, order.totalPayable);
+  }
   await sendActiveTrailEmail(
     getTemplateId("ACTIVETRAIL_TEMPLATE_ADMIN_PENDING"),
     adminEmail,
-    {
-      ...orderParams(order),
-      admin_url: adminUrl,
-    },
+    params,
     `הזמנה ${order.orderNumber} ממתינה לאישורך – מישקי דן`
   );
 }
