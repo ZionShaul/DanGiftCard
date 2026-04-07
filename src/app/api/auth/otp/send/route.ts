@@ -28,15 +28,24 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // בדיקת משתמש — תגובה זהה גם אם לא קיים (הגנה מפני email enumeration)
+  // בדיקת משתמש
   const user = await prisma.user.findUnique({
     where: { email },
     select: { isActive: true },
   });
 
-  if (!user || !user.isActive) {
-    // תגובה זהה — לא חושפים אם קיים או לא
-    return NextResponse.json({ success: true });
+  if (!user) {
+    return NextResponse.json(
+      { error: "כתובת המייל אינה רשומה במערכת. אנא פנה למנהל." },
+      { status: 404 }
+    );
+  }
+
+  if (!user.isActive) {
+    return NextResponse.json(
+      { error: "חשבונך אינו פעיל. אנא פנה למנהל המערכת." },
+      { status: 403 }
+    );
   }
 
   const code = generateCode();
