@@ -5,6 +5,7 @@ import { z } from "zod";
 
 const createSchema = z.object({
   name: z.string().min(2).max(200),
+  parentOrg: z.string().max(50).optional().nullable(),
   code: z.string().max(50).optional(),
   contactEmail: z.string().email().optional().or(z.literal("")),
 });
@@ -38,6 +39,7 @@ export async function POST(req: NextRequest) {
   const org = await prisma.organization.create({
     data: {
       name: parsed.data.name,
+      parentOrg: parsed.data.parentOrg || null,
       code: parsed.data.code || null,
       contactEmail: parsed.data.contactEmail || null,
     },

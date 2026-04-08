@@ -6,13 +6,16 @@ import Link from "next/link";
 type Org = {
   id: string;
   name: string;
+  parentOrg: string | null;
   code: string | null;
   contactEmail: string | null;
   isActive: boolean;
   _count: { users: number; orders: number };
 };
 
-const emptyForm = { name: "", code: "", contactEmail: "", isActive: true };
+const emptyForm = { name: "", parentOrg: "", code: "", contactEmail: "", isActive: true };
+
+const PARENT_ORGS = ["משקי הנגב", "משקי הדרום"];
 
 export default function OrganizationsPage() {
   const [orgs, setOrgs] = useState<Org[]>([]);
@@ -39,7 +42,13 @@ export default function OrganizationsPage() {
   }
 
   function openEdit(org: Org) {
-    setForm({ name: org.name, code: org.code ?? "", contactEmail: org.contactEmail ?? "", isActive: org.isActive });
+    setForm({
+      name: org.name,
+      parentOrg: org.parentOrg ?? "",
+      code: org.code ?? "",
+      contactEmail: org.contactEmail ?? "",
+      isActive: org.isActive,
+    });
     setError("");
     setModal({ open: true, editing: org });
   }
@@ -53,6 +62,7 @@ export default function OrganizationsPage() {
 
     const body = {
       name: form.name.trim(),
+      parentOrg: form.parentOrg || null,
       code: form.code.trim() || null,
       contactEmail: form.contactEmail.trim() || null,
       isActive: form.isActive,
@@ -74,12 +84,12 @@ export default function OrganizationsPage() {
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
+    <div className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-slate-800">ניהול ארגונים</h1>
+        <h1 className="text-2xl font-bold text-slate-800">ניהול משקים</h1>
         <button onClick={openAdd}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
-          + ארגון חדש
+          + משק חדש
         </button>
       </div>
 
@@ -88,6 +98,7 @@ export default function OrganizationsPage() {
           <thead className="bg-slate-50 text-slate-600 border-b border-slate-100">
             <tr>
               <th className="text-right px-4 py-3 font-medium">שם</th>
+              <th className="text-right px-4 py-3 font-medium">ארגון אב</th>
               <th className="text-right px-4 py-3 font-medium">קוד</th>
               <th className="text-right px-4 py-3 font-medium">מייל קשר</th>
               <th className="text-center px-4 py-3 font-medium">משתמשים</th>
@@ -98,14 +109,15 @@ export default function OrganizationsPage() {
           </thead>
           <tbody>
             {loading && (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-400">טוען...</td></tr>
+              <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">טוען...</td></tr>
             )}
             {!loading && orgs.length === 0 && (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-400">אין ארגונים. הוסף ארגון ראשון.</td></tr>
+              <tr><td colSpan={8} className="px-4 py-8 text-center text-slate-400">אין משקים. הוסף משק ראשון.</td></tr>
             )}
             {orgs.map((org) => (
               <tr key={org.id} className={`border-t border-slate-100 hover:bg-slate-50 ${!org.isActive ? "opacity-50" : ""}`}>
                 <td className="px-4 py-3 font-medium text-slate-800">{org.name}</td>
+                <td className="px-4 py-3 text-slate-500 text-xs">{org.parentOrg ?? "–"}</td>
                 <td className="px-4 py-3 text-slate-500 font-mono text-xs">{org.code ?? "–"}</td>
                 <td className="px-4 py-3 text-slate-500">{org.contactEmail ?? "–"}</td>
                 <td className="px-4 py-3 text-center">{org._count.users}</td>
@@ -130,13 +142,13 @@ export default function OrganizationsPage() {
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-slate-400 mt-2">{orgs.length} ארגונים רשומים</p>
+      <p className="text-xs text-slate-400 mt-2">{orgs.length} משקים רשומים</p>
 
       {modal.open && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <h2 className="text-lg font-bold text-slate-800">{modal.editing ? "עריכת ארגון" : "ארגון חדש"}</h2>
+              <h2 className="text-lg font-bold text-slate-800">{modal.editing ? "עריכת משק" : "משק חדש"}</h2>
               <button onClick={closeModal} className="text-slate-400 hover:text-slate-600 text-xl leading-none">×</button>
             </div>
             <form onSubmit={handleSave} className="px-6 py-5 space-y-4">
@@ -144,14 +156,25 @@ export default function OrganizationsPage() {
                 <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">{error}</div>
               )}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">שם ארגון</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">שם משק</label>
                 <input type="text" required value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="קיבוץ דן" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">קוד ארגון (אופציונלי)</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">ארגון אב</label>
+                <select value={form.parentOrg}
+                  onChange={(e) => setForm({ ...form, parentOrg: e.target.value })}
+                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="">-- בחר ארגון אב --</option>
+                  {PARENT_ORGS.map((p) => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">קוד משק (אופציונלי)</label>
                 <input type="text" value={form.code}
                   onChange={(e) => setForm({ ...form, code: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -169,7 +192,7 @@ export default function OrganizationsPage() {
                   <input type="checkbox" id="orgActive" checked={form.isActive}
                     onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
                     className="rounded" />
-                  <label htmlFor="orgActive" className="text-sm text-slate-700">ארגון פעיל</label>
+                  <label htmlFor="orgActive" className="text-sm text-slate-700">משק פעיל</label>
                 </div>
               )}
               <div className="flex gap-3 pt-2">

@@ -8,7 +8,7 @@ import type { UserRole } from "@prisma/client";
 const adminLinks = [
   { href: "/dashboard", label: "לוח בקרה" },
   { href: "/admin/users", label: "משתמשים" },
-  { href: "/admin/organizations", label: "ארגונים" },
+  { href: "/admin/organizations", label: "משקים" },
   { href: "/admin/card-types", label: "סוגי כרטיסים" },
   { href: "/admin/reports", label: "דוחות" },
   { href: "/admin/settings", label: "הגדרות" },

@@ -38,6 +38,7 @@ enum Holiday {
 model Organization {
   id            String   @id @default(uuid())
   name          String   @db.VarChar(200)
+  parentOrg     String?  @db.VarChar(50)
   code          String?  @unique @db.VarChar(50)
   contactEmail  String?  @db.VarChar(255)
   isActive      Boolean  @default(true)
