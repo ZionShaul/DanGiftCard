@@ -183,10 +183,54 @@ export async function sendOtpEmail(email: string, code: string) {
 }
 
 export async function sendOrderApprovedEmail(order: EmailOrder) {
+  const subject = `הזמנה ${order.orderNumber} אושרה! – משקי דן`;
+  const params = orderParams(order);
+
+  // Send to requester
   await sendActiveTrailEmail(
     getTemplateId("ACTIVETRAIL_TEMPLATE_ORDER_APPROVED"),
     order.requester.email,
-    orderParams(order),
-    `הזמנה ${order.orderNumber} אושרה! – משקי דן`
+    params,
+    subject
   );
+
+  // Also send to signatory if present
+  if (order.signatory?.email) {
+    await sendActiveTrailEmail(
+      getTemplateId("ACTIVETRAIL_TEMPLATE_ORDER_APPROVED"),
+      order.signatory.email,
+      params,
+      subject
+    );
+  }
+}
+
+export async function sendAdminRejectedEmail(order: EmailOrder, comment: string) {
+  const subject = `הזמנה ${order.orderNumber} נדחתה ע"י מנהל – משקי דן`;
+  const params: Record<string, string> = {
+    ...orderParams(order),
+    organization_name: order.organization.name,
+    reject_reason: comment,
+  };
+  if (order.items && order.items.length > 0) {
+    params.items_html = buildItemsHtml(order.items, order.totalPayable);
+  }
+
+  // Send to requester
+  await sendActiveTrailEmail(
+    getTemplateId("ACTIVETRAIL_TEMPLATE_SIGNATORY_REJECTED"),
+    order.requester.email,
+    params,
+    subject
+  );
+
+  // Also send to signatory if present
+  if (order.signatory?.email) {
+    await sendActiveTrailEmail(
+      getTemplateId("ACTIVETRAIL_TEMPLATE_SIGNATORY_REJECTED"),
+      order.signatory.email,
+      params,
+      subject
+    );
+  }
 }

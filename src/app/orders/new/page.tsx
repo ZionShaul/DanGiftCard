@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 interface OrderWindow {
@@ -45,6 +45,16 @@ export default function NewOrderPage() {
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const autoSelected = useRef(false);
+
+  // Auto-select if only one active window
+  useEffect(() => {
+    if (windows.length === 1 && !autoSelected.current) {
+      autoSelected.current = true;
+      setSelectedWindow(windows[0].id);
+      setStep(2);
+    }
+  }, [windows]);
 
   useEffect(() => {
     fetch("/api/v1/order-windows?active=true")
@@ -226,7 +236,14 @@ export default function NewOrderPage() {
       {/* Step 2 – Add items */}
       {step === 2 && (
         <div className="bg-white rounded-xl border border-slate-200 p-6">
-          <h2 className="font-semibold text-slate-700 mb-4">הוסף פריטים</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-slate-700">הוסף פריטים</h2>
+            {windows.find((w) => w.id === selectedWindow) && (
+              <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded-lg">
+                חלון: {windows.find((w) => w.id === selectedWindow)?.name}
+              </span>
+            )}
+          </div>
           <div className="space-y-3 mb-4">
             {items.map((item, i) => {
               const ct = getCardType(item.cardTypeId);

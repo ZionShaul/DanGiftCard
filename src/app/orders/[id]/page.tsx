@@ -6,6 +6,7 @@ import { OrderStatus } from "@prisma/client";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import SignatoryActions from "./signatory-actions";
+import AdminActions from "./admin-actions";
 import DeleteOrderButton from "./delete-order-button";
 
 const STATUS_COLORS: Record<OrderStatus, string> = {
@@ -97,11 +98,25 @@ export default async function OrderDetailPage({
           <SignatoryActions orderId={order.id} />
         )}
 
-      {/* Rejection comment banner */}
-      {order.status === "rejected_signatory" && order.signatoryComment && (
+      {/* Admin approve/reject actions */}
+      {user.role === "admin" && order.status === "pending_admin" && (
+        <AdminActions orderId={order.id} />
+      )}
+
+      {/* Rejection by signatory banner */}
+      {order.status === "rejected_signatory" && !order.adminReviewedAt && order.signatoryComment && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
           <p className="font-semibold text-red-800">נדחתה על ידי מורשה החתימה</p>
           <p className="text-red-700 text-sm mt-1">{order.signatoryComment}</p>
+        </div>
+      )}
+
+      {/* Rejection by admin banner */}
+      {order.status === "rejected_signatory" && order.adminReviewedAt && order.adminComment && (
+        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6">
+          <p className="font-semibold text-orange-800">נדחתה על ידי מנהל המערכת</p>
+          <p className="text-orange-700 text-sm mt-1">{order.adminComment}</p>
+          <p className="text-orange-600 text-xs mt-2">ניתן לערוך את ההזמנה ולהגיש מחדש לאישור מורשה החתימה.</p>
         </div>
       )}
 

@@ -1,18 +1,9 @@
 import { requireAuth } from "@/lib/auth/helpers";
 import { prisma } from "@/lib/db";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { STATUS_LABELS } from "@/lib/orders/status-machine";
 import Link from "next/link";
+import DashboardOrdersTable, { SerializedOrder } from "./orders-table";
 import { OrderStatus } from "@prisma/client";
-
-const STATUS_COLORS: Record<OrderStatus, string> = {
-  draft: "bg-slate-100 text-slate-700",
-  pending_signatory: "bg-yellow-100 text-yellow-800",
-  rejected_signatory: "bg-red-100 text-red-800",
-  pending_admin: "bg-blue-100 text-blue-800",
-  approved: "bg-green-100 text-green-800",
-  cancelled: "bg-gray-100 text-gray-600",
-};
 
 export default async function DashboardPage() {
   const user = await requireAuth();
@@ -26,7 +17,7 @@ export default async function DashboardPage() {
         requester: { select: { fullName: true } },
       },
       orderBy: { updatedAt: "desc" },
-      take: 20,
+      take: 100,
     });
   } else if (user.role === "requester") {
     orders = await prisma.order.findMany({
@@ -37,7 +28,7 @@ export default async function DashboardPage() {
         requester: { select: { fullName: true } },
       },
       orderBy: { updatedAt: "desc" },
-      take: 20,
+      take: 100,
     });
   } else {
     // signatory
@@ -49,7 +40,7 @@ export default async function DashboardPage() {
         requester: { select: { fullName: true } },
       },
       orderBy: { updatedAt: "desc" },
-      take: 20,
+      take: 100,
     });
   }
 
@@ -65,6 +56,22 @@ export default async function DashboardPage() {
     },
     orderBy: { orderCloseAt: "asc" },
   });
+
+  // Serialize for client component (Decimal → number, Date → string)
+  const serializedOrders: SerializedOrder[] = orders.map((o) => ({
+    id: o.id,
+    orderNumber: o.orderNumber,
+    status: o.status as OrderStatus,
+    totalPayable: Number(o.totalPayable),
+    totalCards: o.totalCards,
+    updatedAt: o.updatedAt.toISOString(),
+    organization: { name: o.organization.name },
+    orderWindow: {
+      name: o.orderWindow.name,
+      deliveryDate: o.orderWindow.deliveryDate.toISOString(),
+    },
+    requester: { fullName: o.requester.fullName },
+  }));
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
@@ -104,55 +111,13 @@ export default async function DashboardPage() {
         />
       </div>
 
-      {/* Orders table */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-          <h2 className="font-semibold text-slate-700">הזמנות אחרונות</h2>
-          <Link href="/orders" className="text-blue-600 text-sm hover:underline">
-            הצג הכל
-          </Link>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-slate-50 text-slate-600">
-              <tr>
-                <th className="text-right px-4 py-3 font-medium">מספר הזמנה</th>
-                <th className="text-right px-4 py-3 font-medium">ארגון</th>
-                <th className="text-right px-4 py-3 font-medium">חלון</th>
-                <th className="text-right px-4 py-3 font-medium">סטטוס</th>
-                <th className="text-right px-4 py-3 font-medium">לתשלום</th>
-                <th className="text-right px-4 py-3 font-medium">עדכון</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((order) => (
-                <tr key={order.id} className="border-t border-slate-100 hover:bg-slate-50">
-                  <td className="px-4 py-3">
-                    <Link href={`/orders/${order.id}`} className="text-blue-600 hover:underline font-mono text-xs">
-                      {order.orderNumber}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-slate-700">{order.organization.name}</td>
-                  <td className="px-4 py-3 text-slate-600">{order.orderWindow.name}</td>
-                  <td className="px-4 py-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[order.status]}`}>
-                      {STATUS_LABELS[order.status]}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 font-medium">{formatCurrency(Number(order.totalPayable))}</td>
-                  <td className="px-4 py-3 text-slate-500">{formatDate(order.updatedAt)}</td>
-                </tr>
-              ))}
-              {orders.length === 0 && (
-                <tr>
-                  <td colSpan={6} className="px-4 py-8 text-center text-slate-400">
-                    אין הזמנות להצגה
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+      {/* Filterable Orders Table */}
+      <DashboardOrdersTable orders={serializedOrders} userRole={user.role} />
+
+      <div className="flex justify-end mt-2">
+        <Link href="/orders" className="text-blue-600 text-sm hover:underline">
+          הצג הכל →
+        </Link>
       </div>
     </div>
   );
